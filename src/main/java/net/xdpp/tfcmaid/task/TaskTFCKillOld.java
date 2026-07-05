@@ -15,6 +15,7 @@ import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.item.ItemStack;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidKillOldTask;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -24,28 +25,28 @@ public class TaskTFCKillOld implements IMaidTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_kill_old");
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return TFCItems.METAL_ITEMS.get(Metal.Default.WROUGHT_IRON).get(Metal.ItemType.KNIFE).get().getDefaultInstance();
     }
 
     @Nullable
     @Override
-    public SoundEvent getAmbientSound(EntityMaid maid) {
+    public SoundEvent getAmbientSound(@NotNull EntityMaid maid) {
         return SoundUtil.environmentSound(maid, InitSounds.MAID_ATTACK.get(), 0.5f);
     }
 
     @Override
-    public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
+    public @NotNull List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(@NotNull EntityMaid maid) {
         return Lists.newArrayList(Pair.of(5, new MaidKillOldTask(0.6f)));
     }
 
     @Override
-    public FunctionCallSwitchResult onFunctionCallSwitch(EntityMaid maid) {
+    public @NotNull FunctionCallSwitchResult onFunctionCallSwitch(@NotNull EntityMaid maid) {
         if (hasWeapon(maid)) {
             return FunctionCallSwitchResult.NO_CHANGE;
         }
@@ -58,7 +59,7 @@ public class TaskTFCKillOld implements IMaidTask {
     }
 
     @Override
-    public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList(Pair.of("has_weapon", this::hasWeapon));
     }
 }

@@ -4,6 +4,7 @@ import com.github.tartaricacid.touhoulittlemaid.api.task.IMaidTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.task.TaskManager;
 import net.xdpp.tfcmaid.config.TaskConfigManager;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -18,7 +19,11 @@ import java.util.Map;
  */
 @Mixin(value = TaskManager.class, remap = false)
 public abstract class TaskManagerMixin {
+
+    @Unique
     private static final Map<Class<?>, Boolean> BLOCKED_TASK_CACHE = new HashMap<>();
+
+    @Unique
     private static boolean shouldSkipAdd = false;
 
     private static boolean isTaskClassBlocked(Class<?> taskClass) {

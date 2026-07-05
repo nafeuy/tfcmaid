@@ -22,12 +22,12 @@ side = "BOTH"
 [[dependencies."${mod_id}"]]
 modId = "touhou_little_maid"
 mandatory = true
-versionRange = "[1.4.0,)"
+versionRange = "[1.5.3,)"
 ordering = "AFTER"
 side = "BOTH"
 [[dependencies."${mod_id}"]]
 modId = "tfc"
 mandatory = true
-versionRange = "[3.2,)"
+versionRange = "[3.2.23,)"
 ordering = "AFTER"
 side = "BOTH"

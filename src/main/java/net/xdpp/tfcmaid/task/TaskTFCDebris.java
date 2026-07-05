@@ -11,6 +11,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.xdpp.tfcmaid.Tfcmaid;
+import org.jetbrains.annotations.NotNull;
 
 public class TaskTFCDebris implements IFarmTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_debris");
@@ -19,24 +20,24 @@ public class TaskTFCDebris implements IFarmTask {
     public static final TagKey<Block> TFC_LOOSE_ROCKS = TagKey.create(net.minecraft.core.registries.Registries.BLOCK, ResourceLocation.parse("tfc:loose_rocks"));
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse("tfc:rock/mossy_loose/conglomerate"))
                 .map(ItemStack::new)
                 .orElse(Items.FLINT.getDefaultInstance());
     }
 
     @Override
-    public boolean isSeed(ItemStack stack) {
+    public boolean isSeed(@NotNull ItemStack stack) {
         return false;
     }
 
     @Override
-    public boolean canHarvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public boolean canHarvest(@NotNull EntityMaid maid, @NotNull BlockPos cropPos, BlockState cropState) {
         if (cropState.is(TFC_TWIGS)) {
             return true;
         }
@@ -47,21 +48,21 @@ public class TaskTFCDebris implements IFarmTask {
     }
 
     @Override
-    public void harvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public void harvest(EntityMaid maid, @NotNull BlockPos cropPos, @NotNull BlockState cropState) {
         maid.destroyBlock(cropPos);
     }
 
     @Override
-    public boolean canPlant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public boolean canPlant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         return false;
     }
 
     @Override
-    public ItemStack plant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public @NotNull ItemStack plant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         return seed;
     }
 
-    public String getMaidActionSummary() {
+    public @NotNull String getMaidActionSummary() {
         return "Collect nearby TFC twigs and loose rocks.";
     }
 }

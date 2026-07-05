@@ -21,6 +21,7 @@ import net.dries007.tfc.common.blocks.plant.fruit.SpreadingBushBlock;
 import net.dries007.tfc.common.items.Food;
 import net.dries007.tfc.common.items.TFCItems;
 import net.xdpp.tfcmaid.Tfcmaid;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -32,27 +33,27 @@ public class TaskTFCBerryBush implements IFarmTask {
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList();
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return TFCItems.FOOD.get(Food.BLACKBERRY).get().getDefaultInstance();
     }
 
     @Override
-    public boolean isSeed(ItemStack stack) {
+    public boolean isSeed(@NotNull ItemStack stack) {
         return false;
     }
 
     @Override
-    public boolean canHarvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public boolean canHarvest(EntityMaid maid, BlockPos cropPos, @NotNull BlockState cropState) {
         Level level = maid.level();
         
         BlockPos basePos = cropPos.below();
@@ -76,7 +77,7 @@ public class TaskTFCBerryBush implements IFarmTask {
     }
 
     @Override
-    public void harvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public void harvest(@NotNull EntityMaid maid, BlockPos cropPos, @NotNull BlockState cropState) {
         BlockPos basePos = cropPos.below();
         
         iterateNearbyPositions(basePos, (pos) -> {
@@ -112,7 +113,7 @@ public class TaskTFCBerryBush implements IFarmTask {
         BlockState state = level.getBlockState(pos);
         Block block = state.getBlock();
         
-        if (!(block instanceof SeasonalPlantBlock)) {
+        if (!(block instanceof SeasonalPlantBlock seasonalPlant)) {
             return;
         }
         
@@ -120,10 +121,8 @@ public class TaskTFCBerryBush implements IFarmTask {
             state.getValue(SeasonalPlantBlock.LIFECYCLE) != Lifecycle.FRUITING) {
             return;
         }
-        
-        SeasonalPlantBlock seasonalPlant = (SeasonalPlantBlock) block;
-        
-        level.playSound(null, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, 
+
+        level.playSound(null, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES,
             SoundSource.PLAYERS, 1.0f, level.getRandom().nextFloat() + 0.7f + 0.3f);
         
         ItemStack product = seasonalPlant.getProductItem(level.random);
@@ -136,12 +135,12 @@ public class TaskTFCBerryBush implements IFarmTask {
     }
 
     @Override
-    public boolean canPlant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public boolean canPlant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         return false;
     }
 
     @Override
-    public ItemStack plant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public @NotNull ItemStack plant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         return seed;
     }
     

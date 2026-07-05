@@ -18,6 +18,7 @@ import net.dries007.tfc.common.items.TFCItems;
 import net.dries007.tfc.util.Pannable;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidPanningTask;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -27,12 +28,12 @@ public class TaskTFCPanning implements IMaidTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_panning");
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         try {
             return TFCItems.EMPTY_PAN.get().getDefaultInstance();
         } catch (Exception e) {
@@ -42,17 +43,17 @@ public class TaskTFCPanning implements IMaidTask {
 
     @Nullable
     @Override
-    public SoundEvent getAmbientSound(EntityMaid maid) {
+    public SoundEvent getAmbientSound(@NotNull EntityMaid maid) {
         return SoundUtil.environmentSound(maid, InitSounds.MAID_IDLE.get(), 0.15f);
     }
 
     @Override
-    public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
+    public @NotNull List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(@NotNull EntityMaid maid) {
         return Lists.newArrayList(Pair.of(5, new MaidPanningTask(0.6f)));
     }
 
     @Override
-    public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList(
                 Pair.of("has_empty_pan", this::hasEmptyPan),
                 Pair.of("has_pannable_in_inventory", this::hasPannableItemOrFilledPan)
@@ -60,7 +61,7 @@ public class TaskTFCPanning implements IMaidTask {
     }
 
     @Override
-    public boolean workPointTask(EntityMaid maid) {
+    public boolean workPointTask(@NotNull EntityMaid maid) {
         return true;
     }
 

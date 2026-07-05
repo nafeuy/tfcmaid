@@ -22,6 +22,7 @@ import net.dries007.tfc.common.blocks.plant.ShortGrassBlock;
 import net.dries007.tfc.common.blocks.plant.TFCTallGrassBlock;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.config.WeedConfigManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -33,19 +34,19 @@ public class TaskTFCHay implements IFarmTask {
     public static final TagKey<net.minecraft.world.item.Item> TFC_SCYTHES = TagKey.create(net.minecraft.core.registries.Registries.ITEM, ResourceLocation.parse("tfc:scythes"));
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse("tfc:straw"))
                 .map(ItemStack::new)
                 .orElse(Items.WHEAT.getDefaultInstance());
     }
 
     @Override
-    public boolean isSeed(ItemStack stack) {
+    public boolean isSeed(@NotNull ItemStack stack) {
         return false;
     }
 
@@ -68,7 +69,7 @@ public class TaskTFCHay implements IFarmTask {
     }
 
     @Override
-    public boolean canHarvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public boolean canHarvest(@NotNull EntityMaid maid, @NotNull BlockPos cropPos, @NotNull BlockState cropState) {
         if (!hasRequiredTools(maid)) {
             return false;
         }
@@ -92,28 +93,28 @@ public class TaskTFCHay implements IFarmTask {
     }
 
     @Override
-    public void harvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public void harvest(EntityMaid maid, @NotNull BlockPos cropPos, @NotNull BlockState cropState) {
         if (maid.level() instanceof ServerLevel serverLevel) {
             if (maid.canDestroyBlock(cropPos)) {
-                BlockEntity blockEntity = cropState.hasBlockEntity() ? maid.level().getBlockEntity(cropPos) : null;
-                maid.dropResourcesToMaidInv(cropState, maid.level(), cropPos, blockEntity, maid, maid.getMainHandItem());
-                maid.level().setBlock(cropPos, cropState.getFluidState().createLegacyBlock(), Block.UPDATE_ALL);
+                BlockEntity blockEntity = cropState.hasBlockEntity() ? serverLevel.getBlockEntity(cropPos) : null;
+                maid.dropResourcesToMaidInv(cropState, serverLevel, cropPos, blockEntity, maid, maid.getMainHandItem());
+                serverLevel.setBlock(cropPos, cropState.getFluidState().createLegacyBlock(), Block.UPDATE_ALL);
             }
         }
     }
 
     @Override
-    public boolean canPlant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public boolean canPlant(@NotNull EntityMaid maid,@NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         return false;
     }
 
     @Override
-    public ItemStack plant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public @NotNull ItemStack plant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         return seed;
     }
 
     @Override
-    public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList(
                 Pair.of("has_hoe_or_knife", this::hasRequiredTools)
         );

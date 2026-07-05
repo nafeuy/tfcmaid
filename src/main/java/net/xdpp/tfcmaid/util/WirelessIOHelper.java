@@ -61,10 +61,7 @@ public class WirelessIOHelper {
         for (var type : ChestManager.getAllChestTypes()) {
             if (type.isChest(te)) {
                 IItemHandler chestInv = te.getCapability(ForgeCapabilities.ITEM_HANDLER, null).orElse(null);
-                if (chestInv != null) {
-                    return tryInsertToChestWithFilter(wirelessIO, chestInv, stack);
-                }
-                break;
+                return tryInsertToChestWithFilter(wirelessIO, chestInv, stack);
             }
         }
         return stack;

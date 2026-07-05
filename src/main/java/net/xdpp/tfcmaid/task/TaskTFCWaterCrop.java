@@ -22,6 +22,7 @@ import net.dries007.tfc.common.items.TFCItems;
 import net.dries007.tfc.util.Fertilizer;
 import net.dries007.tfc.util.climate.ClimateRange;
 import net.xdpp.tfcmaid.Tfcmaid;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
@@ -72,7 +73,7 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
      * 返回任务条件描述，在UI中显示
      */
     @Override
-    public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList(
                 Pair.of("has_hoe", this::hasRequiredTools),
                 Pair.of("has_seed", this::hasApplicableSeed)
@@ -80,7 +81,7 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return TFCItems.CROP_SEEDS.get(Crop.RICE).get().getDefaultInstance();
     }
 
@@ -88,7 +89,7 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
      * 判断某个物品是否是这个任务适用的种子
      */
     @Override
-    public boolean isSeed(ItemStack stack) {
+    public boolean isSeed(@NotNull ItemStack stack) {
         for (Crop crop : applicableCrops) {
             if (stack.is(TFCItems.CROP_SEEDS.get(crop).get())) {
                 return true;
@@ -104,15 +105,14 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
      * 2. 作物已经完全成熟
      */
     @Override
-    public boolean canHarvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public boolean canHarvest(@NotNull EntityMaid maid, @NotNull BlockPos cropPos, BlockState cropState) {
         Block block = cropState.getBlock();
         if (block instanceof DeadCropBlock) {
             return true;
         }
-        if (!(block instanceof CropBlock)) {
+        if (!(block instanceof CropBlock cropBlock)) {
             return false;
         }
-        CropBlock cropBlock = (CropBlock) block;
         return cropBlock.isMaxAge(cropState);
     }
 
@@ -121,7 +121,7 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
      * 如果是枯萎作物或者普通成熟作物，直接破坏方块
      */
     @Override
-    public void harvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public void harvest(@NotNull EntityMaid maid, @NotNull BlockPos cropPos, BlockState cropState) {
         Block block = cropState.getBlock();
         if (block instanceof DeadCropBlock) {
             maid.destroyBlock(cropPos);
@@ -142,7 +142,7 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
      * 5. 气候条件符合
      */
     @Override
-    public boolean canPlant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public boolean canPlant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         if (!hasHoe(maid)) {
             return false;
         }
@@ -185,7 +185,7 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
      * 2. 在水里放置稻种
      */
     @Override
-    public ItemStack plant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public @NotNull ItemStack plant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         Optional<Crop> cropOpt = getCropFromSeed(seed);
         if (cropOpt.isPresent()) {
             Crop crop = cropOpt.get();
@@ -195,9 +195,7 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
                 FarmlandBlockEntity farmland = farmlandOpt.get();
                 if (shouldFertilizeCrop(farmland, primaryNutrient)) {
                     Optional<Fertilizer> fertilizerOpt = findBestFertilizer(maid, farmland, primaryNutrient);
-                    if (fertilizerOpt.isPresent()) {
-                        applyFertilizer(maid, basePos, fertilizerOpt.get());
-                    }
+                    fertilizerOpt.ifPresent(fertilizer -> applyFertilizer(maid, basePos, fertilizer));
                 }
             }
             BlockPos cropPos = basePos.above();
@@ -228,7 +226,7 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
         }
 
         @Override
-        protected void start(ServerLevel worldIn, EntityMaid entityIn, long gameTimeIn) {
+        protected void start(@NotNull ServerLevel worldIn, EntityMaid entityIn, long gameTimeIn) {
             entityIn.getSwimManager().setWantToSwim(true);
             super.start(worldIn, entityIn, gameTimeIn);
         }
@@ -239,7 +237,7 @@ public class TaskTFCWaterCrop extends TaskTFCFarmBase {
      * 用我们自定义的WaterFarmMoveTask代替普通的移动任务
      */
     @Override
-    public List<Pair<Integer, net.minecraft.world.entity.ai.behavior.BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
+    public @NotNull List<Pair<Integer, net.minecraft.world.entity.ai.behavior.BehaviorControl<? super EntityMaid>>> createBrainTasks(@NotNull EntityMaid maid) {
         WaterFarmMoveTask waterFarmMoveTask = new WaterFarmMoveTask(this, 0.6f);
         MaidFarmPlantTask maidFarmPlantTask = new MaidFarmPlantTask(this);
         return Lists.newArrayList(Pair.of(5, waterFarmMoveTask), Pair.of(6, maidFarmPlantTask));

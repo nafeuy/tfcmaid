@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.dries007.tfc.common.blockentities.CropBlockEntity;
 import net.dries007.tfc.common.blocks.crop.ICropBlock;
 import net.dries007.tfc.util.calendar.Calendars;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * 作物调试魔杖
@@ -29,7 +30,7 @@ public class FarmDebugWand extends Item {
     }
 
     @Override
-    public InteractionResult useOn(UseOnContext context) {
+    public @NotNull InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
@@ -63,7 +64,7 @@ public class FarmDebugWand extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(Level level, @NotNull Player player, @NotNull InteractionHand hand) {
         if (!level.isClientSide() && player.isShiftKeyDown()) {
             player.displayClientMessage(Component.literal("右键点击作物可使其立即成熟且不会枯萎"), true);
         }
@@ -71,7 +72,7 @@ public class FarmDebugWand extends Item {
     }
 
     @Override
-    public boolean isFoil(ItemStack stack) {
+    public boolean isFoil(@NotNull ItemStack stack) {
         return true;
     }
 }

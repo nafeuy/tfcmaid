@@ -13,6 +13,7 @@ import net.minecraft.world.item.Items;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidQuernMoveTask;
 import net.xdpp.tfcmaid.behavior.MaidQuernWorkTask;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -34,12 +35,12 @@ public class TaskTFCQuern implements IMaidTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_quern");
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse("tfc:quern"))
                 .map(ItemStack::new)
                 .orElse(Items.COBBLESTONE.getDefaultInstance());
@@ -47,12 +48,12 @@ public class TaskTFCQuern implements IMaidTask {
 
     @Nullable
     @Override
-    public SoundEvent getAmbientSound(EntityMaid maid) {
+    public SoundEvent getAmbientSound(@NotNull EntityMaid maid) {
         return null;
     }
 
     @Override
-    public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
+    public @NotNull List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(@NotNull EntityMaid maid) {
         MaidQuernMoveTask moveTask = new MaidQuernMoveTask(0.6f);
         MaidQuernWorkTask workTask = new MaidQuernWorkTask(2.0);
         return Lists.newArrayList(
@@ -62,16 +63,16 @@ public class TaskTFCQuern implements IMaidTask {
     }
 
     @Override
-    public List<Pair<String, java.util.function.Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, java.util.function.Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList();
     }
 
     @Override
-    public boolean workPointTask(EntityMaid maid) {
+    public boolean workPointTask(@NotNull EntityMaid maid) {
         return true;
     }
 
-    public String getMaidActionSummary() {
+    public @NotNull String getMaidActionSummary() {
         return "Grind items using a TFC quern.";
     }
 }

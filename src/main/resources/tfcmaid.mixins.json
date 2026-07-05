@@ -1,21 +1,24 @@
 {
-  "required": true,
-  "minVersion": "0.8",
-  "package": "net.xdpp.tfcmaid.mixin",
-  "compatibilityLevel": "JAVA_8",
-  "refmap": "tfcmaid.refmap.json",
-  "mixins": [
-    "TaskManagerMixin",
-    "TaskFeedOwnerMixin",
+  "required" : true,
+  "minVersion" : "0.8",
+  "package" : "net.xdpp.tfcmaid.mixin",
+  "compatibilityLevel" : "JAVA_8",
+  "refmap" : "tfcmaid.refmap.json",
+  "mixins" : [
     "LoomBlockEntityAccessor",
-    "QuernBlockEntityAccessor"
+    "MaidHealSelfTaskMixin",
+    "MaidHomeMealTaskMixin",
+    "MaidWorkMealTaskMixin",
+    "QuernBlockEntityAccessor",
+    "TaskFeedOwnerMixin",
+    "TaskManagerMixin"
   ],
-  "client": [
+  "client" : [
   ],
-  "injectors": {
-    "defaultRequire": 1
+  "injectors" : {
+    "defaultRequire" : 1
   },
-  "overwrites": {
-    "requireAnnotations": true
+  "overwrites" : {
+    "requireAnnotations" : true
   }
 }

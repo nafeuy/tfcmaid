@@ -12,6 +12,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
+    id "org.parchmentmc.librarian.forgegradle" version "1.+"
 }
 
 apply plugin: 'org.spongepowered.mixin'
@@ -93,11 +94,13 @@ dependencies {
     // patchouli
     runtimeOnly fg.deobf("curse.maven:patchouli-306770:4966125")
     // tfc
-    implementation fg.deobf("curse.maven:terrafirmacraft-302973:7730077")
+    implementation fg.deobf("curse.maven:terrafirmacraft-302973:8242625")
     // maid
-    implementation fg.deobf("curse.maven:touhou-little-maid-355044:7510714")
+    implementation fg.deobf("curse.maven:touhou-little-maid-355044:8061847")
     //jei
     implementation fg.deobf("curse.maven:jei-238222:7391695")
+    //jade
+    implementation fg.deobf("curse.maven:jade-324717:6855440")
 }
 
 tasks.named('processResources', ProcessResources).configure {

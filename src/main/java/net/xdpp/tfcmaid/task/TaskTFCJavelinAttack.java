@@ -27,6 +27,7 @@ import net.dries007.tfc.common.items.TFCItems;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidAttackJavelinTask;
 import net.xdpp.tfcmaid.behavior.MaidJavelinTargetTask;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -36,14 +37,14 @@ public class TaskTFCJavelinAttack implements IRangedAttackTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_javelin_attack");
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
     //小心地雷！！！
     //获取任务图标
     //有人反馈说在整合包使用报错，获取不到tfc原版的图标，所以添加catch来处理，出现异常时返回铁剑(因为一个附属mod对tfc的图标机制进行了改动才导致了这个情况)
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         try {
             return TFCItems.ROCK_TOOLS.get(RockCategory.IGNEOUS_EXTRUSIVE).get(RockCategory.ItemType.JAVELIN).get().getDefaultInstance();
         } catch (Exception e) {
@@ -53,12 +54,12 @@ public class TaskTFCJavelinAttack implements IRangedAttackTask {
 
     @Nullable
     @Override
-    public SoundEvent getAmbientSound(EntityMaid maid) {
+    public SoundEvent getAmbientSound(@NotNull EntityMaid maid) {
         return SoundUtil.attackSound(maid, InitSounds.MAID_RANGE_ATTACK.get(), 0.5f);
     }
 
     @Override
-    public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
+    public @NotNull List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(@NotNull EntityMaid maid) {
         BehaviorControl<EntityMaid> supplementedTask = StartAttacking.create(this::hasJavelin, IRangedAttackTask::findFirstValidAttackTarget);
         BehaviorControl<EntityMaid> findTargetTask = StopAttackingIfTargetInvalid.create((target) -> !hasJavelin(maid) || farAway(target, maid));
         BehaviorControl<EntityMaid> moveToTargetTask = MaidRangedWalkToTarget.create(0.6f);
@@ -75,7 +76,7 @@ public class TaskTFCJavelinAttack implements IRangedAttackTask {
     }
 
     @Override
-    public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createRideBrainTasks(EntityMaid maid) {
+    public @NotNull List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createRideBrainTasks(@NotNull EntityMaid maid) {
         BehaviorControl<EntityMaid> supplementedTask = StartAttacking.create(this::hasJavelin, IRangedAttackTask::findFirstValidAttackTarget);
         BehaviorControl<EntityMaid> findTargetTask = StopAttackingIfTargetInvalid.create((target) -> !hasJavelin(maid) || farAway(target, maid));
         BehaviorControl<EntityMaid> shootTargetTask = new MaidJavelinTargetTask();
@@ -88,12 +89,12 @@ public class TaskTFCJavelinAttack implements IRangedAttackTask {
     }
 
     @Override
-    public boolean canSee(EntityMaid maid, LivingEntity target) {
+    public boolean canSee(@NotNull EntityMaid maid, @NotNull LivingEntity target) {
         return IRangedAttackTask.targetConditionsTest(maid, target, MaidConfig.TRIDENT_RANGE);
     }
 
     @Override
-    public AABB searchDimension(EntityMaid maid) {
+    public @NotNull AABB searchDimension(@NotNull EntityMaid maid) {
         if (hasJavelin(maid)) {
             float searchRange = this.searchRadius(maid);
             if (maid.hasRestriction()) {
@@ -106,7 +107,7 @@ public class TaskTFCJavelinAttack implements IRangedAttackTask {
     }
 
     @Override
-    public float searchRadius(EntityMaid maid) {
+    public float searchRadius(@NotNull EntityMaid maid) {
         return MaidConfig.TRIDENT_RANGE.get();
     }
 
@@ -133,12 +134,12 @@ public class TaskTFCJavelinAttack implements IRangedAttackTask {
     }
 
     @Override
-    public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList(Pair.of("has_javelin", this::hasJavelin));
     }
 
     @Override
-    public boolean isWeapon(EntityMaid maid, ItemStack stack) {
+    public boolean isWeapon(@NotNull EntityMaid maid, ItemStack stack) {
         return stack.getItem() instanceof JavelinItem;
     }
 
