@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import net.minecraft.util.RandomSource;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * TFC可采摘种植任务
@@ -50,7 +51,7 @@ public class TaskTFCPickableCrop extends TaskTFCFarmBase {
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
@@ -79,7 +80,7 @@ public class TaskTFCPickableCrop extends TaskTFCFarmBase {
      * 返回任务条件描述，在UI中显示
      */
     @Override
-    public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList(
                 Pair.of("has_hoe", this::hasRequiredTools),
                 Pair.of("has_seed", this::hasApplicableSeed)
@@ -87,7 +88,7 @@ public class TaskTFCPickableCrop extends TaskTFCFarmBase {
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return TFCItems.CROP_SEEDS.get(Crop.RED_BELL_PEPPER).get().getDefaultInstance();
     }
 
@@ -95,7 +96,7 @@ public class TaskTFCPickableCrop extends TaskTFCFarmBase {
      * 判断某个物品是否是这个任务适用的种子
      */
     @Override
-    public boolean isSeed(ItemStack stack) {
+    public boolean isSeed(@NotNull ItemStack stack) {
         for (Crop crop : applicableCrops) {
             if (stack.is(TFCItems.CROP_SEEDS.get(crop).get())) {
                 return true;
@@ -112,19 +113,18 @@ public class TaskTFCPickableCrop extends TaskTFCFarmBase {
      * 3. 如果是普通作物，需要完全成熟
      */
     @Override
-    public boolean canHarvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public boolean canHarvest(@NotNull EntityMaid maid, @NotNull BlockPos cropPos, BlockState cropState) {
         Block block = cropState.getBlock();
         if (block instanceof DeadCropBlock) {
             return true;
         }
-        if (!(block instanceof CropBlock)) {
+        if (!(block instanceof CropBlock cropBlock)) {
             return false;
         }
         if (block instanceof PickableCropBlock pickableCrop) {
             int age = cropState.getValue(pickableCrop.getAgeProperty());
             return age >= pickableCrop.getMaxAge() - 1;
         }
-        CropBlock cropBlock = (CropBlock) block;
         return cropBlock.isMaxAge(cropState);
     }
 
@@ -141,7 +141,7 @@ public class TaskTFCPickableCrop extends TaskTFCFarmBase {
      * 如果是枯萎作物或普通作物，直接破坏方块
      */
     @Override
-    public void harvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public void harvest(@NotNull EntityMaid maid, @NotNull BlockPos cropPos, BlockState cropState) {
         Block block = cropState.getBlock();
         if (block instanceof DeadCropBlock) {
             maid.destroyBlock(cropPos);
@@ -191,7 +191,7 @@ public class TaskTFCPickableCrop extends TaskTFCFarmBase {
      * 4. 气候条件符合
      */
     @Override
-    public boolean canPlant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public boolean canPlant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         if (!hasHoe(maid)) {
             return false;
         }
@@ -222,7 +222,7 @@ public class TaskTFCPickableCrop extends TaskTFCFarmBase {
      * 2. 放置种子
      */
     @Override
-    public ItemStack plant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public @NotNull ItemStack plant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         Optional<Crop> cropOpt = getCropFromSeed(seed);
         if (cropOpt.isPresent()) {
             Crop crop = cropOpt.get();
@@ -232,9 +232,7 @@ public class TaskTFCPickableCrop extends TaskTFCFarmBase {
                 FarmlandBlockEntity farmland = farmlandOpt.get();
                 if (shouldFertilizeCrop(farmland, primaryNutrient)) {
                     Optional<Fertilizer> fertilizerOpt = findBestFertilizer(maid, farmland, primaryNutrient);
-                    if (fertilizerOpt.isPresent()) {
-                        applyFertilizer(maid, basePos, fertilizerOpt.get());
-                    }
+                    fertilizerOpt.ifPresent(fertilizer -> applyFertilizer(maid, basePos, fertilizer));
                 }
             }
             BlockPos cropPos = basePos.above();

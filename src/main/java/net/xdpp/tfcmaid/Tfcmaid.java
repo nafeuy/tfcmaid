@@ -40,6 +40,7 @@ public class Tfcmaid {
     public static final RegistryObject<Item> FARM_DEBUG_WAND = ITEMS.register("farm_debug_wand", () ->
             new FarmDebugWand(new Item.Properties().stacksTo(1)));
 
+    @SuppressWarnings("removal")
     public Tfcmaid() {
         // 初始化任务配置管理器
         TaskConfigManager.initialize();

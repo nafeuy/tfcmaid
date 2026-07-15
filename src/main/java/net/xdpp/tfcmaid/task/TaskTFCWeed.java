@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.config.WeedConfigManager;
+import org.jetbrains.annotations.NotNull;
 
 public class TaskTFCWeed implements IFarmTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_weed");
@@ -20,22 +21,22 @@ public class TaskTFCWeed implements IFarmTask {
     public static final TagKey<Block> TFC_WILD_CROPS = TagKey.create(net.minecraft.core.registries.Registries.BLOCK, ResourceLocation.parse("tfc:wild_crops"));
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return Items.GRASS.getDefaultInstance();
     }
 
     @Override
-    public boolean isSeed(ItemStack stack) {
+    public boolean isSeed(@NotNull ItemStack stack) {
         return false;
     }
 
     @Override
-    public boolean canHarvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public boolean canHarvest(@NotNull EntityMaid maid, @NotNull BlockPos cropPos, BlockState cropState) {
         ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(cropState.getBlock());
 
         if (WeedConfigManager.isBlockBlacklisted(blockId.toString())) {
@@ -54,21 +55,21 @@ public class TaskTFCWeed implements IFarmTask {
     }
 
     @Override
-    public void harvest(EntityMaid maid, BlockPos cropPos, BlockState cropState) {
+    public void harvest(EntityMaid maid, @NotNull BlockPos cropPos, @NotNull BlockState cropState) {
         maid.destroyBlock(cropPos);
     }
 
     @Override
-    public boolean canPlant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public boolean canPlant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         return false;
     }
 
     @Override
-    public ItemStack plant(EntityMaid maid, BlockPos basePos, BlockState baseState, ItemStack seed) {
+    public @NotNull ItemStack plant(@NotNull EntityMaid maid, @NotNull BlockPos basePos, @NotNull BlockState baseState, @NotNull ItemStack seed) {
         return seed;
     }
 
-    public String getMaidActionSummary() {
+    public @NotNull String getMaidActionSummary() {
         return "Clear nearby TFC plants, wild crops, and weeds.";
     }
 }

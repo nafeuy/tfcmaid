@@ -15,6 +15,7 @@ import net.minecraft.world.item.Items;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidLoomMoveTask;
 import net.xdpp.tfcmaid.behavior.MaidLoomWorkTask;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -40,12 +41,12 @@ public class TaskTFCLoom implements IMaidTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_loom");
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse("tfc:wood/planks/acacia_loom"))
                 .map(ItemStack::new)
                 .orElse(Items.SPIDER_EYE.getDefaultInstance());
@@ -58,7 +59,7 @@ public class TaskTFCLoom implements IMaidTask {
     }
 
     @Override
-    public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
+    public @NotNull List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(@NotNull EntityMaid maid) {
         MaidLoomMoveTask moveTask = new MaidLoomMoveTask(0.6f);
         MaidLoomWorkTask workTask = new MaidLoomWorkTask(2.0);
         return Lists.newArrayList(
@@ -68,7 +69,7 @@ public class TaskTFCLoom implements IMaidTask {
     }
 
     @Override
-    public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList(
                 Pair.of("has_loom_result", this::hasLoomResult),
                 Pair.of("has_stick_in_offhand", this::hasStickInOffhand)
@@ -97,7 +98,7 @@ public class TaskTFCLoom implements IMaidTask {
     }
 
     @Override
-    public FunctionCallSwitchResult onFunctionCallSwitch(EntityMaid maid) {
+    public @NotNull FunctionCallSwitchResult onFunctionCallSwitch(EntityMaid maid) {
         if (!maid.getMainHandItem().isEmpty() && hasStickInOffhand(maid)) {
             return FunctionCallSwitchResult.NO_CHANGE;
         }
@@ -105,11 +106,11 @@ public class TaskTFCLoom implements IMaidTask {
     }
 
     @Override
-    public boolean workPointTask(EntityMaid maid) {
+    public boolean workPointTask(@NotNull EntityMaid maid) {
         return true;
     }
 
-    public String getMaidActionSummary() {
+    public @NotNull String getMaidActionSummary() {
         return "Weave cloth using a TFC loom.";
     }
 }

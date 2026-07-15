@@ -13,6 +13,7 @@ import net.minecraft.world.item.Items;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidBellowsMoveTask;
 import net.xdpp.tfcmaid.behavior.MaidBellowsWorkTask;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -30,12 +31,12 @@ public class TaskTFCBellows implements IMaidTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_bellows");
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse("tfc:bellows"))
                 .map(ItemStack::new)
                 .orElse(Items.BLACKSTONE.getDefaultInstance());
@@ -48,7 +49,7 @@ public class TaskTFCBellows implements IMaidTask {
     }
 
     @Override
-    public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
+    public @NotNull List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(@NotNull EntityMaid maid) {
         MaidBellowsMoveTask moveTask = new MaidBellowsMoveTask(0.6f);
         MaidBellowsWorkTask workTask = new MaidBellowsWorkTask(2.0);
         return Lists.newArrayList(
@@ -58,16 +59,16 @@ public class TaskTFCBellows implements IMaidTask {
     }
 
     @Override
-    public List<Pair<String, java.util.function.Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, java.util.function.Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList();
     }
 
     @Override
-    public boolean workPointTask(EntityMaid maid) {
+    public boolean workPointTask(@NotNull EntityMaid maid) {
         return true;
     }
 
-    public String getMaidActionSummary() {
+    public @NotNull String getMaidActionSummary() {
         return "Blow air using a TFC bellows.";
     }
 }

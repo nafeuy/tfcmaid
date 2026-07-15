@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.common.ToolActions;
 import net.xdpp.tfcmaid.Tfcmaid;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -24,28 +25,28 @@ public class TaskTFCShears implements IMaidTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_shears");
 
     @Override
-    public ResourceLocation getUid() {
+    public @NotNull ResourceLocation getUid() {
         return UID;
     }
 
     @Override
-    public ItemStack getIcon() {
+    public @NotNull ItemStack getIcon() {
         return Items.SHEARS.getDefaultInstance();
     }
 
     @Nullable
     @Override
-    public SoundEvent getAmbientSound(EntityMaid maid) {
+    public SoundEvent getAmbientSound(@NotNull EntityMaid maid) {
         return SoundUtil.environmentSound(maid, InitSounds.MAID_SHEARS.get(), 0.5f);
     }
 
     @Override
-    public List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) {
+    public @NotNull List<Pair<Integer, BehaviorControl<? super EntityMaid>>> createBrainTasks(@NotNull EntityMaid maid) {
         return Lists.newArrayList(Pair.of(5, new MaidShearTask(0.6f)));
     }
 
     @Override
-    public FunctionCallSwitchResult onFunctionCallSwitch(EntityMaid maid) {
+    public @NotNull FunctionCallSwitchResult onFunctionCallSwitch(EntityMaid maid) {
         if (maid.getMainHandItem().canPerformAction(ToolActions.SHEARS_HARVEST)) {
             return FunctionCallSwitchResult.NO_CHANGE;
         }
@@ -59,7 +60,7 @@ public class TaskTFCShears implements IMaidTask {
     
     // 条件描述方法
     @Override
-    public List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(EntityMaid maid) {
+    public @NotNull List<Pair<String, Predicate<EntityMaid>>> getConditionDescription(@NotNull EntityMaid maid) {
         return Lists.newArrayList(Pair.of("has_shears", this::hasShears));
     }
 }
