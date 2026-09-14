@@ -40,11 +40,11 @@ public class MaidEquipmentHelper {
             if (!stack.isEmpty() && predicate.test(stack)) {
                 ItemStack extracted = backpack.extractItem(i, count, false);
                 if (!mainHand.isEmpty()) {
-                    ItemStack remaining = ItemHandlerHelper.insertItemStacked(backpack, mainHand, false);
-                    if (!remaining.isEmpty()) {
+                    if (!ItemHandlerHelper.insertItemStacked(backpack, mainHand.copy(), true).isEmpty()) {
                         backpack.insertItem(i, extracted, false);
-                        return false;
+                        continue;
                     }
+                    ItemHandlerHelper.insertItemStacked(backpack, mainHand.copy(), false);
                 }
                 maid.setItemInHand(InteractionHand.MAIN_HAND, extracted);
                 return true;
@@ -93,11 +93,11 @@ public class MaidEquipmentHelper {
                 if (validatedStack != null) {
                     ItemStack extracted = backpack.extractItem(i, 1, false);
                     if (!mainHand.isEmpty()) {
-                        ItemStack remaining = ItemHandlerHelper.insertItemStacked(backpack, mainHand, false);
-                        if (!remaining.isEmpty()) {
+                        if (!ItemHandlerHelper.insertItemStacked(backpack, mainHand.copy(), true).isEmpty()) {
                             backpack.insertItem(i, extracted, false);
-                            return false;
+                            continue;
                         }
+                        ItemHandlerHelper.insertItemStacked(backpack, mainHand.copy(), false);
                     }
                     maid.setItemInHand(InteractionHand.MAIN_HAND, validatedStack);
                     return true;

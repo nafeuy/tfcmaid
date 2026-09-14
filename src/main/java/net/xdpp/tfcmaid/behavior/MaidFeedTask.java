@@ -3,6 +3,9 @@ package net.xdpp.tfcmaid.behavior;
 import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.task.MaidCheckRateTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.google.common.collect.ImmutableMap;
+import com.github.tartaricacid.touhoulittlemaid.util.ItemsUtil;
+import net.dries007.tfc.common.component.TFCComponents;
+import net.dries007.tfc.common.component.item.ItemComponent;
 import net.dries007.tfc.common.component.food.FoodCapability;
 import net.dries007.tfc.common.entities.livestock.Age;
 import net.dries007.tfc.common.entities.livestock.TFCAnimalProperties;
@@ -15,8 +18,6 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.xdpp.tfcmaid.config.FeedConfigManager;
 import net.xdpp.tfcmaid.util.MaidEquipmentHelper;
 
@@ -66,7 +67,7 @@ public class MaidFeedTask extends MaidCheckRateTask {
             return;
         }
 
-        ItemStack food = findAndEquipFood(maid);
+        ItemStack food = findAndEquipFood(maid, animalsInRange);
         if (food.isEmpty()) {
             return;
         }
@@ -115,10 +116,14 @@ public class MaidFeedTask extends MaidCheckRateTask {
         entity.heal(1f);
         if (!level.isClientSide) {
             animalProps.setLastFedNow();
+
+            ItemComponent bowl = food.get(TFCComponents.BOWL);
+            if (bowl != null) {
+                ItemsUtil.giveItemToMaid(maid, bowl.stack().copy());
+            }
             
             if (food.hasCraftingRemainingItem()) {
-                var backpack = maid.getAvailableBackpackInv();
-                ItemHandlerHelper.insertItemStacked(backpack, food.getCraftingRemainingItem().copy(), false);
+                ItemsUtil.giveItemToMaid(maid, food.getCraftingRemainingItem().copy());
             }
             
             if (animalProps.getAgeType() == Age.CHILD ||
@@ -172,15 +177,20 @@ public class MaidFeedTask extends MaidCheckRateTask {
         };
     }
 
-    private ItemStack findAndEquipFood(EntityMaid maid) {
-        if (MaidEquipmentHelper.findAndEquipItem(maid, this::isValidFood)) {
+    private ItemStack findAndEquipFood(EntityMaid maid, List<LivingEntity> animals) {
+        if (MaidEquipmentHelper.findAndEquipItem(maid, stack -> isValidFoodForAnyAnimal(stack, animals))) {
             return maid.getMainHandItem();
         }
         return ItemStack.EMPTY;
     }
 
-    private boolean isValidFood(ItemStack stack) {
-        return !FoodCapability.isRotten(stack);
+    private boolean isValidFoodForAnyAnimal(ItemStack stack, List<LivingEntity> animals) {
+        if (FoodCapability.isRotten(stack)) {
+            return false;
+        }
+        return animals.stream()
+                .map(TFCAnimalProperties.class::cast)
+                .anyMatch(animal -> animal.isHungry() && animal.isFood(stack));
     }
 
     private NearestVisibleLivingEntities getEntities(EntityMaid maid) {

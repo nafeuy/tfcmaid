@@ -20,7 +20,6 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
-import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.xdpp.tfcmaid.util.MaidEquipmentHelper;
 
@@ -71,7 +70,7 @@ public class MaidMilkTask extends MaidCheckRateTask {
                 if (destFluidItemHandler != null) {
                     if (animal.isReadyForAnimalProduct()) {
                         final FluidStack milk = new FluidStack(animal.getMilkFluid(), FluidHelpers.BUCKET_VOLUME);
-                        final AnimalProductEvent event = new AnimalProductEvent(worldIn, maid.blockPosition(), null, animal, milk, singleBucket, 1);
+                        final AnimalProductEvent event = new AnimalProductEvent(worldIn, animal.blockPosition(), null, animal, milk, singleBucket, 1);
 
                         if (!NeoForge.EVENT_BUS.post(event).isCanceled()) {
                             FluidStack eventMilk = event.getFluidProduct();
@@ -83,14 +82,17 @@ public class MaidMilkTask extends MaidCheckRateTask {
                                 if (held.getCount() == 1) {
                                     maid.setItemInHand(InteractionHand.MAIN_HAND, filledBucket);
                                 } else {
-                                    held.shrink(1);
                                     var backpack = maid.getAvailableBackpackInv();
-                                    ItemStack remaining = ItemHandlerHelper.insertItemStacked(backpack, filledBucket, false);
-                                    if (!remaining.isEmpty()) {
-                                        maid.setItemInHand(InteractionHand.MAIN_HAND, held);
+                                    // Do not consume a container or put the animal on cooldown when the
+                                    // filled result cannot be stored. The simulated and real insert run
+                                    // consecutively on the server thread, so the real insert is atomic
+                                    // with respect to other inventory mutations.
+                                    if (!ItemHandlerHelper.insertItemStacked(backpack, filledBucket, true).isEmpty()) {
                                         dairyAnimal = null;
                                         return;
                                     }
+                                    held.shrink(1);
+                                    ItemHandlerHelper.insertItemStacked(backpack, filledBucket, false);
                                 }
                                 
                                 animal.setProductsCooldown();
