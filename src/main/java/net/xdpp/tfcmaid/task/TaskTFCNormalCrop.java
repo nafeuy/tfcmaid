@@ -9,8 +9,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 import net.dries007.tfc.common.blocks.crop.Crop;
 import net.dries007.tfc.common.blocks.crop.CropBlock;
 import net.dries007.tfc.common.blocks.crop.DeadCropBlock;
@@ -18,7 +18,7 @@ import net.dries007.tfc.common.blocks.crop.ClimbingCropBlock;
 import net.dries007.tfc.common.blocks.soil.FarmlandBlock;
 import net.dries007.tfc.common.blockentities.FarmlandBlockEntity;
 import net.dries007.tfc.common.items.TFCItems;
-import net.dries007.tfc.util.Fertilizer;
+import net.dries007.tfc.util.data.Fertilizer;
 import net.dries007.tfc.util.climate.ClimateRange;
 import net.xdpp.tfcmaid.Tfcmaid;
 import org.jetbrains.annotations.NotNull;
@@ -191,15 +191,7 @@ public class TaskTFCNormalCrop extends TaskTFCFarmBase {
         Optional<Crop> cropOpt = getCropFromSeed(seed);
         if (cropOpt.isPresent()) {
             Crop crop = cropOpt.get();
-            FarmlandBlockEntity.NutrientType primaryNutrient = crop.getPrimaryNutrient();
-            Optional<FarmlandBlockEntity> farmlandOpt = getFarmlandEntity(maid.level(), basePos);
-            if (farmlandOpt.isPresent()) {
-                FarmlandBlockEntity farmland = farmlandOpt.get();
-                if (shouldFertilizeCrop(farmland, primaryNutrient)) {
-                    Optional<Fertilizer> fertilizerOpt = findBestFertilizer(maid, farmland, primaryNutrient);
-                    fertilizerOpt.ifPresent(fertilizer -> applyFertilizer(maid, basePos, fertilizer));
-                }
-            }
+            fertilizeBeforePlanting(maid, basePos, crop);
             BlockPos cropPos = basePos.above();
             maid.placeItemBlock(cropPos, seed);
             if (isClimbingCrop(crop)) {

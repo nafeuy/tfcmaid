@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 import net.dries007.tfc.common.blocks.crop.Crop;
 import net.dries007.tfc.common.blocks.crop.CropBlock;
 import net.dries007.tfc.common.blocks.crop.DeadCropBlock;
@@ -18,7 +18,7 @@ import net.dries007.tfc.common.blocks.crop.SpreadingCropBlock;
 import net.dries007.tfc.common.blocks.soil.FarmlandBlock;
 import net.dries007.tfc.common.blockentities.FarmlandBlockEntity;
 import net.dries007.tfc.common.items.TFCItems;
-import net.dries007.tfc.util.Fertilizer;
+import net.dries007.tfc.util.data.Fertilizer;
 import net.dries007.tfc.util.climate.ClimateRange;
 import net.xdpp.tfcmaid.Tfcmaid;
 import org.jetbrains.annotations.NotNull;
@@ -208,15 +208,7 @@ public class TaskTFCSpreadingCrop extends TaskTFCFarmBase {
         Optional<Crop> cropOpt = getCropFromSeed(seed);
         if (cropOpt.isPresent()) {
             Crop crop = cropOpt.get();
-            FarmlandBlockEntity.NutrientType primaryNutrient = crop.getPrimaryNutrient();
-            Optional<FarmlandBlockEntity> farmlandOpt = getFarmlandEntity(maid.level(), basePos);
-            if (farmlandOpt.isPresent()) {
-                FarmlandBlockEntity farmland = farmlandOpt.get();
-                if (shouldFertilizeCrop(farmland, primaryNutrient)) {
-                    Optional<Fertilizer> fertilizerOpt = findBestFertilizer(maid, farmland, primaryNutrient);
-                    fertilizerOpt.ifPresent(fertilizer -> applyFertilizer(maid, basePos, fertilizer));
-                }
-            }
+            fertilizeBeforePlanting(maid, basePos, crop);
             BlockPos cropPos = basePos.above();
             maid.placeItemBlock(cropPos, seed);
         }

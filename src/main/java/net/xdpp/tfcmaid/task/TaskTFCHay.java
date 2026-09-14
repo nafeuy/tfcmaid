@@ -16,7 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 import net.dries007.tfc.common.TFCTags;
 import net.dries007.tfc.common.blocks.plant.ShortGrassBlock;
 import net.dries007.tfc.common.blocks.plant.TFCTallGrassBlock;
@@ -53,7 +53,7 @@ public class TaskTFCHay implements IFarmTask {
     private boolean hasRequiredTools(EntityMaid maid) {
         ItemStack mainHand = maid.getMainHandItem();
         return mainHand.getItem() instanceof HoeItem 
-                || mainHand.is(TFCTags.Items.KNIVES) 
+                || mainHand.is(TFCTags.Items.TOOLS_KNIFE)
                 || mainHand.is(TFC_SCYTHES);
     }
 

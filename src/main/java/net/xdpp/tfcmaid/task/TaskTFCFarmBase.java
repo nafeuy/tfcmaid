@@ -7,19 +7,20 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 import net.dries007.tfc.common.blocks.crop.Crop;
 import net.dries007.tfc.common.blocks.soil.FarmlandBlock;
 import net.dries007.tfc.common.blockentities.FarmlandBlockEntity;
 import net.dries007.tfc.common.blockentities.CropBlockEntity;
-import net.dries007.tfc.util.Fertilizer;
+import net.dries007.tfc.util.data.Fertilizer;
 import net.dries007.tfc.util.climate.Climate;
 import net.dries007.tfc.util.climate.ClimateRange;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 /**
  * TFC女仆种植任务的基类
@@ -86,8 +87,8 @@ public abstract class TaskTFCFarmBase implements IFarmTask {
      * @return true表示气候条件符合要求
      */
     protected boolean checkClimateConditions(Level level, BlockPos pos, ClimateRange climateRange) {
-        int hydration = FarmlandBlock.getHydration(level, pos);
-        float temperature = Climate.getTemperature(level, pos);
+        int hydration = FarmlandBlock.getInstantHydration(level, pos);
+        float temperature = Climate.getInstantTemperature(level, pos);
         return climateRange.checkBoth(hydration, temperature, true);
     }
 
@@ -107,9 +108,9 @@ public abstract class TaskTFCFarmBase implements IFarmTask {
         float currentP = farmland.getNutrient(FarmlandBlockEntity.NutrientType.PHOSPHOROUS);
         float currentK = farmland.getNutrient(FarmlandBlockEntity.NutrientType.POTASSIUM);
 
-        float addN = fertilizer.getNitrogen();
-        float addP = fertilizer.getPhosphorus();
-        float addK = fertilizer.getPotassium();
+        float addN = fertilizer.nitrogen();
+        float addP = fertilizer.phosphorus();
+        float addK = fertilizer.potassium();
 
         boolean wouldOverflowPrimary = false;
         boolean isUsefulForPrimary = false;
@@ -148,11 +149,11 @@ public abstract class TaskTFCFarmBase implements IFarmTask {
             if (fertilizer != null && isFertilizerUseful(farmland, fertilizer, primaryNutrient)) {
                 float score = 0;
                 if (primaryNutrient == FarmlandBlockEntity.NutrientType.NITROGEN) {
-                    score = fertilizer.getNitrogen();
+                    score = fertilizer.nitrogen();
                 } else if (primaryNutrient == FarmlandBlockEntity.NutrientType.PHOSPHOROUS) {
-                    score = fertilizer.getPhosphorus();
+                    score = fertilizer.phosphorus();
                 } else {
-                    score = fertilizer.getPotassium();
+                    score = fertilizer.potassium();
                 }
 
                 if (score > bestScore) {
@@ -202,6 +203,41 @@ public abstract class TaskTFCFarmBase implements IFarmTask {
     protected boolean shouldFertilizeCrop(FarmlandBlockEntity farmland, FarmlandBlockEntity.NutrientType primaryNutrient) {
         float currentPrimary = farmland.getNutrient(primaryNutrient);
         return currentPrimary < 0.7f;
+    }
+
+    /**
+     * 1.21 的作物会同时消耗或补充多种养分。以最大正消耗量作为施肥主养分；
+     * 覆盖作物只有负值，会补充土壤养分，因此不应在播种前施肥。
+     */
+    @Nullable
+    protected FarmlandBlockEntity.NutrientType getPrimaryNutrient(Crop crop) {
+        float nitrogen = crop.getNitrogen();
+        float phosphorus = crop.getPhosphorous();
+        float potassium = crop.getPotassium();
+        float maximum = Math.max(nitrogen, Math.max(phosphorus, potassium));
+        if (maximum <= 0f) {
+            return null;
+        }
+        if (maximum == nitrogen) {
+            return FarmlandBlockEntity.NutrientType.NITROGEN;
+        }
+        if (maximum == phosphorus) {
+            return FarmlandBlockEntity.NutrientType.PHOSPHOROUS;
+        }
+        return FarmlandBlockEntity.NutrientType.POTASSIUM;
+    }
+
+    protected void fertilizeBeforePlanting(EntityMaid maid, BlockPos farmlandPos, Crop crop) {
+        FarmlandBlockEntity.NutrientType primaryNutrient = getPrimaryNutrient(crop);
+        if (primaryNutrient == null) {
+            return;
+        }
+        getFarmlandEntity(maid.level(), farmlandPos).ifPresent(farmland -> {
+            if (shouldFertilizeCrop(farmland, primaryNutrient)) {
+                findBestFertilizer(maid, farmland, primaryNutrient)
+                        .ifPresent(fertilizer -> applyFertilizer(maid, farmlandPos, fertilizer));
+            }
+        });
     }
 
     /**

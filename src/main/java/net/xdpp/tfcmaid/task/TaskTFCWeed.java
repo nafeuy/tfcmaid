@@ -27,7 +27,7 @@ public class TaskTFCWeed implements IFarmTask {
 
     @Override
     public @NotNull ItemStack getIcon() {
-        return Items.GRASS.getDefaultInstance();
+        return Items.SHORT_GRASS.getDefaultInstance();
     }
 
     @Override
