@@ -7,10 +7,10 @@ import com.github.tartaricacid.touhoulittlemaid.item.ItemWirelessIO;
 import com.github.tartaricacid.touhoulittlemaid.item.bauble.WirelessIOBauble;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
 
-import static com.github.tartaricacid.touhoulittlemaid.util.BytesBooleansConvert.bytes2Booleans;
+import java.util.List;
 
 // 隙间工具类，把几个Behavior里重复的隙间操作都抽到这里来了
 // 省得每个文件都要写一遍获取饰品、检查绑定、过滤物品这些破事
@@ -60,8 +60,8 @@ public class WirelessIOHelper {
         // 遍历所有支持的箱子类型，找到能用的就行
         for (var type : ChestManager.getAllChestTypes()) {
             if (type.isChest(te)) {
-                IItemHandler chestInv = te.getCapability(ForgeCapabilities.ITEM_HANDLER, null).orElse(null);
-                return tryInsertToChestWithFilter(wirelessIO, chestInv, stack);
+                IItemHandler chestInv = maid.level().getCapability(Capabilities.ItemHandler.BLOCK, te.getBlockPos(), null);
+                return tryInsertToChestWithFilter(maid, wirelessIO, chestInv, stack);
             }
         }
         return stack;
@@ -69,13 +69,13 @@ public class WirelessIOHelper {
 
     // 带过滤规则的插入方法，这里会检查黑白名单
     // 不要直接调用这个，用上面那个tryInsertToChest
-    public static ItemStack tryInsertToChestWithFilter(ItemStack wirelessIO, IItemHandler chestInv, ItemStack stack) {
+    public static ItemStack tryInsertToChestWithFilter(EntityMaid maid, ItemStack wirelessIO, IItemHandler chestInv, ItemStack stack) {
+        if (chestInv == null) {
+            return stack;
+        }
         boolean isBlacklist = ItemWirelessIO.isBlacklist(wirelessIO);
-        IItemHandler filterList = ItemWirelessIO.getFilterList(wirelessIO);
-        byte[] slotConfig = ItemWirelessIO.getSlotConfig(wirelessIO);
-        // 动态获取槽位数：slotConfig有就用它的长度，没有就用默认38（女仆标准槽位数）
-        int slotNum = slotConfig != null ? slotConfig.length : 38;
-        boolean[] slotConfigData = slotConfig != null ? bytes2Booleans(slotConfig, slotNum) : null;
+        IItemHandler filterList = ItemWirelessIO.getFilterList(maid.registryAccess(), wirelessIO);
+        List<Boolean> slotConfigData = ItemWirelessIO.getSlotConfig(wirelessIO);
 
         // 先检查物品能不能移动，根据黑白名单判断
         boolean allowMove = isBlacklist;
@@ -96,9 +96,9 @@ public class WirelessIOHelper {
 
     // 单独检查某个物品是否允许被隙间移动
     // 黑白名单逻辑都在这里，避免重复写
-    public static boolean isItemAllowed(ItemStack wirelessIO, ItemStack stack) {
+    public static boolean isItemAllowed(EntityMaid maid, ItemStack wirelessIO, ItemStack stack) {
         boolean isBlacklist = ItemWirelessIO.isBlacklist(wirelessIO);
-        IItemHandler filterList = ItemWirelessIO.getFilterList(wirelessIO);
+        IItemHandler filterList = ItemWirelessIO.getFilterList(maid.registryAccess(), wirelessIO);
 
         boolean allowMove = isBlacklist;
         for (int j = 0; j < filterList.getSlots(); j++) {
@@ -131,7 +131,7 @@ public class WirelessIOHelper {
 
         for (var type : ChestManager.getAllChestTypes()) {
             if (type.isChest(te)) {
-                return te.getCapability(ForgeCapabilities.ITEM_HANDLER, null).orElse(null);
+                return maid.level().getCapability(Capabilities.ItemHandler.BLOCK, te.getBlockPos(), null);
             }
         }
         return null;

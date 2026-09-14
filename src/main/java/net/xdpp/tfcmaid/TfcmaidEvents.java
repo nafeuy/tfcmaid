@@ -1,12 +1,14 @@
 package net.xdpp.tfcmaid;
 
 import com.github.tartaricacid.touhoulittlemaid.api.event.MaidWirelessIOEvent;
-import net.dries007.tfc.common.capabilities.food.FoodCapability;
+import net.dries007.tfc.common.component.food.FoodCapability;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+
+import java.util.List;
 
 /**
  * TFCMaid 事件监听器
@@ -15,7 +17,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
  * 1. 当隙间从箱子往女仆背包传输物品时，跳过腐烂的食物
  * 2. 当隙间从女仆往箱子传输物品时，强制把腐烂的食物移动到箱子
  */
-@Mod.EventBusSubscriber(modid = Tfcmaid.MODID)
+@EventBusSubscriber(modid = Tfcmaid.MODID, bus = EventBusSubscriber.Bus.GAME)
 public class TfcmaidEvents {
 
     /**
@@ -33,7 +35,7 @@ public class TfcmaidEvents {
         IItemHandler maidInv = event.getMaidInv();
         boolean isBlacklist = event.isBlacklist();
         IItemHandler filterList = event.getFilterInv();
-        boolean[] slotConfig = event.getSlotConfig();
+        List<Boolean> slotConfig = event.getSlotConfig();
 
         for (int i = 0; i < chestInv.getSlots(); i++) {
             ItemStack chestInvStack = chestInv.getStackInSlot(i);
@@ -79,10 +81,10 @@ public class TfcmaidEvents {
         IItemHandler chestInv = event.getChestInv();
         boolean isBlacklist = event.isBlacklist();
         IItemHandler filterList = event.getFilterInv();
-        boolean[] slotConfig = event.getSlotConfig();
+        List<Boolean> slotConfig = event.getSlotConfig();
 
         for (int i = 0; i < maidInv.getSlots(); i++) {
-            if (i < slotConfig.length && slotConfig[i]) {
+            if (slotConfig != null && i < slotConfig.size() && slotConfig.get(i)) {
                 continue;
             }
             ItemStack maidInvItem = maidInv.getStackInSlot(i);
@@ -122,7 +124,7 @@ public class TfcmaidEvents {
      * @param slotConfig 槽位配置，true表示该槽位不允许插入
      * @return 剩余未能插入的物品
      */
-    private static ItemStack insertItemStacked(IItemHandler inventory, ItemStack stack, boolean simulate, boolean[] slotConfig) {
+    private static ItemStack insertItemStacked(IItemHandler inventory, ItemStack stack, boolean simulate, List<Boolean> slotConfig) {
         if (stack.isEmpty()) {
             return stack;
         }
@@ -132,7 +134,7 @@ public class TfcmaidEvents {
         int sizeInventory = inventory.getSlots();
         for (int i = 0; i < sizeInventory; i++) {
             ItemStack slot = inventory.getStackInSlot(i);
-            if (slotConfig != null && i < slotConfig.length && slotConfig[i]) {
+            if (slotConfig != null && i < slotConfig.size() && slotConfig.get(i)) {
                 continue;
             }
             if (canItemStacksStackRelaxed(slot, stack)) {
@@ -145,7 +147,7 @@ public class TfcmaidEvents {
 
         if (!stack.isEmpty()) {
             for (int i = 0; i < sizeInventory; i++) {
-                if (slotConfig != null && i < slotConfig.length && slotConfig[i]) {
+                if (slotConfig != null && i < slotConfig.size() && slotConfig.get(i)) {
                     continue;
                 }
                 if (inventory.getStackInSlot(i).isEmpty()) {
@@ -169,12 +171,12 @@ public class TfcmaidEvents {
      * @param slotConfig 槽位配置，true表示该槽位不允许插入
      * @return 剩余未能插入的物品
      */
-    private static ItemStack insertItem(IItemHandler dest, ItemStack stack, boolean simulate, boolean[] slotConfig) {
+    private static ItemStack insertItem(IItemHandler dest, ItemStack stack, boolean simulate, List<Boolean> slotConfig) {
         if (stack.isEmpty()) {
             return stack;
         }
         for (int i = 0; i < dest.getSlots(); i++) {
-            if (slotConfig != null && i < slotConfig.length && slotConfig[i]) {
+            if (slotConfig != null && i < slotConfig.size() && slotConfig.get(i)) {
                 continue;
             }
             stack = dest.insertItem(i, stack, simulate);
@@ -199,9 +201,6 @@ public class TfcmaidEvents {
         if (!a.isStackable()) {
             return false;
         }
-        if (a.hasTag() != b.hasTag()) {
-            return false;
-        }
-        return (!a.hasTag() || a.getTag().equals(b.getTag())) && a.areCapsCompatible(b);
+        return ItemStack.isSameItemSameComponents(a, b);
     }
 }
