@@ -67,6 +67,9 @@ neoForge {
         gameTestServer {
             type = 'gameTestServer'
             gameDirectory = project.file('run/gameTestServer')
+            // The regression suite reuses TLM 1.5.3's published game_test
+            // structure, so both template namespaces must be enabled.
+            systemProperty 'neoforge.enabledGameTestNamespaces', "${mod_id},touhou_little_maid"
         }
 
         data {
