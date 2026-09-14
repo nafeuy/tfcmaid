@@ -13,7 +13,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.common.ToolActions;
+import net.neoforged.neoforge.common.ItemAbilities;
 import net.xdpp.tfcmaid.Tfcmaid;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +47,7 @@ public class TaskTFCShears implements IMaidTask {
 
     @Override
     public @NotNull FunctionCallSwitchResult onFunctionCallSwitch(EntityMaid maid) {
-        if (maid.getMainHandItem().canPerformAction(ToolActions.SHEARS_HARVEST)) {
+        if (maid.getMainHandItem().canPerformAction(ItemAbilities.SHEARS_HARVEST)) {
             return FunctionCallSwitchResult.NO_CHANGE;
         }
         return FunctionCallSwitchResult.MISSING_REQUIRED_ITEM;
@@ -55,7 +55,7 @@ public class TaskTFCShears implements IMaidTask {
     
     // 剪刀条件检查方法
     private boolean hasShears(EntityMaid maid) {
-        return maid.getMainHandItem().canPerformAction(ToolActions.SHEARS_HARVEST);
+        return maid.getMainHandItem().canPerformAction(ItemAbilities.SHEARS_HARVEST);
     }
     
     // 条件描述方法

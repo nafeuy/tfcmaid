@@ -4,6 +4,7 @@ import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.task.MaidCheckRa
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.google.common.collect.ImmutableMap;
 import net.dries007.tfc.common.entities.Pluckable;
+import net.dries007.tfc.common.entities.livestock.Age;
 import net.dries007.tfc.common.entities.livestock.TFCAnimalProperties;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -37,7 +38,7 @@ public class MaidPluckFeatherTask extends MaidCheckRateTask {
                 .find(e -> maid.isWithinRestriction(e.blockPosition()))
                 .filter(LivingEntity::isAlive)
                 .filter(e -> e instanceof Pluckable)
-                .filter(e -> e instanceof TFCAnimalProperties && ((TFCAnimalProperties) e).getAgeType() == TFCAnimalProperties.Age.ADULT)
+                .filter(e -> e instanceof TFCAnimalProperties && ((TFCAnimalProperties) e).getAgeType() == Age.ADULT)
                 .filter(maid::canPathReach)
                 .toList();
         

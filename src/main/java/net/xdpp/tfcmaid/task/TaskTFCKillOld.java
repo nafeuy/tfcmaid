@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.ItemAbilities;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidKillOldTask;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,7 @@ public class TaskTFCKillOld implements IMaidTask {
 
     @Override
     public @NotNull ItemStack getIcon() {
-        return TFCItems.METAL_ITEMS.get(Metal.Default.WROUGHT_IRON).get(Metal.ItemType.KNIFE).get().getDefaultInstance();
+        return TFCItems.METAL_ITEMS.get(Metal.WROUGHT_IRON).get(Metal.ItemType.KNIFE).get().getDefaultInstance();
     }
 
     @Nullable
@@ -55,7 +56,7 @@ public class TaskTFCKillOld implements IMaidTask {
 
     private boolean hasWeapon(EntityMaid maid) {
         ItemStack stack = maid.getMainHandItem();
-        return stack.getDamageValue() > 0 || stack.canPerformAction(net.minecraftforge.common.ToolActions.SWORD_DIG);
+        return stack.getDamageValue() > 0 || stack.canPerformAction(ItemAbilities.SWORD_DIG);
     }
 
     @Override

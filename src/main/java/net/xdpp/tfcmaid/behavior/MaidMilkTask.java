@@ -3,10 +3,9 @@ package net.xdpp.tfcmaid.behavior;
 import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.task.MaidCheckRateTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.google.common.collect.ImmutableMap;
-import net.dries007.tfc.common.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.dries007.tfc.common.entities.livestock.DairyAnimal;
 import net.dries007.tfc.common.fluids.FluidHelpers;
-import net.dries007.tfc.util.Helpers;
 import net.dries007.tfc.util.events.AnimalProductEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -17,11 +16,12 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.xdpp.tfcmaid.util.MaidEquipmentHelper;
 
 /**
@@ -66,17 +66,18 @@ public class MaidMilkTask extends MaidCheckRateTask {
             
             if (!held.isEmpty()) {
                 ItemStack singleBucket = held.copyWithCount(1);
-                IFluidHandlerItem destFluidItemHandler = Helpers.getCapability(singleBucket, Capabilities.FLUID_ITEM);
+                IFluidHandlerItem destFluidItemHandler = singleBucket.getCapability(Capabilities.FluidHandler.ITEM);
 
                 if (destFluidItemHandler != null) {
                     if (animal.isReadyForAnimalProduct()) {
                         final FluidStack milk = new FluidStack(animal.getMilkFluid(), FluidHelpers.BUCKET_VOLUME);
                         final AnimalProductEvent event = new AnimalProductEvent(worldIn, maid.blockPosition(), null, animal, milk, singleBucket, 1);
 
-                        if (!MinecraftForge.EVENT_BUS.post(event)) {
-                            int filled = destFluidItemHandler.fill(milk, IFluidHandlerItem.FluidAction.SIMULATE);
+                        if (!NeoForge.EVENT_BUS.post(event).isCanceled()) {
+                            FluidStack eventMilk = event.getFluidProduct();
+                            int filled = destFluidItemHandler.fill(eventMilk, IFluidHandlerItem.FluidAction.SIMULATE);
                             if (filled > 0) {
-                                destFluidItemHandler.fill(milk, IFluidHandlerItem.FluidAction.EXECUTE);
+                                destFluidItemHandler.fill(eventMilk, IFluidHandlerItem.FluidAction.EXECUTE);
                                 ItemStack filledBucket = destFluidItemHandler.getContainer();
                                 
                                 if (held.getCount() == 1) {
@@ -108,7 +109,7 @@ public class MaidMilkTask extends MaidCheckRateTask {
     private boolean findAndEquipMilkContainer(EntityMaid maid) {
         return MaidEquipmentHelper.findAndEquipItemWithValidation(maid, stack -> {
             ItemStack singleStack = stack.copyWithCount(1);
-            IFluidHandlerItem handler = Helpers.getCapability(singleStack, Capabilities.FLUID_ITEM);
+            IFluidHandlerItem handler = singleStack.getCapability(Capabilities.FluidHandler.ITEM);
             if (handler != null && canAcceptMoreMilk(handler)) {
                 return singleStack;
             }
@@ -117,7 +118,7 @@ public class MaidMilkTask extends MaidCheckRateTask {
     }
 
     private boolean canAcceptMoreMilk(IFluidHandlerItem handler) {
-        int simulatedFill = handler.fill(new FluidStack(net.minecraftforge.common.ForgeMod.MILK.get(), FluidHelpers.BUCKET_VOLUME), IFluidHandlerItem.FluidAction.SIMULATE);
+        int simulatedFill = handler.fill(new FluidStack(NeoForgeMod.MILK.get(), FluidHelpers.BUCKET_VOLUME), IFluidHandlerItem.FluidAction.SIMULATE);
         return simulatedFill > 0;
     }
 

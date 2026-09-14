@@ -7,7 +7,7 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitSounds;
 import com.github.tartaricacid.touhoulittlemaid.util.SoundUtil;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
-import net.dries007.tfc.common.capabilities.food.FoodCapability;
+import net.dries007.tfc.common.component.food.FoodCapability;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;

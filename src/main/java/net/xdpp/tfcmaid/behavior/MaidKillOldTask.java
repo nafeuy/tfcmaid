@@ -7,6 +7,7 @@ import com.github.tartaricacid.touhoulittlemaid.item.ItemWirelessIO;
 import com.github.tartaricacid.touhoulittlemaid.item.bauble.WirelessIOBauble;
 import com.google.common.collect.ImmutableMap;
 import net.dries007.tfc.common.entities.livestock.TFCAnimalProperties;
+import net.dries007.tfc.common.entities.livestock.Age;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,11 +18,12 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.xdpp.tfcmaid.util.WirelessIOHelper;
 
-import static com.github.tartaricacid.touhoulittlemaid.util.BytesBooleansConvert.bytes2Booleans;
+import java.util.List;
 
 // 女仆击杀衰老动物的任务
 // 逻辑：找衰老的动物 -> 走过去 -> 清空背包 -> 一刀砍死
@@ -53,7 +55,7 @@ public class MaidKillOldTask extends MaidCheckRateTask {
                 .find(e -> maid.isWithinRestriction(e.blockPosition()))
                 .filter(LivingEntity::isAlive)
                 .filter(e -> e instanceof TFCAnimalProperties && !(e instanceof OwnableEntity))
-                .filter(e -> ((TFCAnimalProperties) e).getAgeType() == TFCAnimalProperties.Age.OLD)
+                .filter(e -> ((TFCAnimalProperties) e).getAgeType() == Age.OLD)
                 .filter(maid::canPathReach)
                 .findFirst()
                 .ifPresent(e -> {
@@ -70,7 +72,7 @@ public class MaidKillOldTask extends MaidCheckRateTask {
 
     // 判断是不是武器：有耐久值或者能挥剑就行
     private boolean isWeapon(ItemStack stack) {
-        return stack.getDamageValue() > 0 || stack.canPerformAction(net.minecraftforge.common.ToolActions.SWORD_DIG);
+        return stack.getDamageValue() > 0 || stack.canPerformAction(ItemAbilities.SWORD_DIG);
     }
 
     // 击杀逻辑：先清空背包，再挥一刀
@@ -105,12 +107,9 @@ public class MaidKillOldTask extends MaidCheckRateTask {
 
         for (var type : ChestManager.getAllChestTypes()) {
             if (type.isChest(te)) {
-                IItemHandler chestInv = te.getCapability(ForgeCapabilities.ITEM_HANDLER, null).orElse(null);
+                IItemHandler chestInv = maid.level().getCapability(Capabilities.ItemHandler.BLOCK, te.getBlockPos(), null);
                 if (chestInv != null) {
-                    byte[] slotConfig = ItemWirelessIO.getSlotConfig(wirelessIO);
-                    // 动态获取槽位数：slotConfig有就用它的长度，没有就用默认38（女仆标准槽位数）
-                    int slotNum = slotConfig != null ? slotConfig.length : 38;
-                    boolean[] slotConfigData = slotConfig != null ? bytes2Booleans(slotConfig, slotNum) : null;
+                    List<Boolean> slotConfigData = ItemWirelessIO.getSlotConfig(wirelessIO);
 
                     // 遍历背包，一个一个挪
                     var backpack = maid.getAvailableBackpackInv();
@@ -120,7 +119,7 @@ public class MaidKillOldTask extends MaidCheckRateTask {
                             continue;
                         }
 
-                        boolean allowMove = WirelessIOHelper.isItemAllowed(wirelessIO, stack);
+                        boolean allowMove = WirelessIOHelper.isItemAllowed(maid, wirelessIO, stack);
                         if (allowMove) {
                             ItemStack remaining = WirelessIOBauble.insertItemStacked(chestInv, stack.copy(), false, slotConfigData);
                             int movedCount = stack.getCount() - remaining.getCount();

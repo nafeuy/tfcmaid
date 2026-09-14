@@ -2,12 +2,14 @@ package net.xdpp.tfcmaid.mixin;
 
 import com.github.tartaricacid.touhoulittlemaid.api.task.IFeedTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.task.TaskFeedOwner;
-import net.dries007.tfc.common.capabilities.Capabilities;
-import net.dries007.tfc.common.capabilities.food.TFCFoodData;
-import net.dries007.tfc.util.Drinkable;
+import net.dries007.tfc.common.player.IPlayerInfo;
+import net.dries007.tfc.common.player.PlayerInfo;
+import net.dries007.tfc.util.data.Drinkable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,12 +28,9 @@ public abstract class TaskFeedOwnerMixin {
      */
     @Inject(method = "isFood(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/player/Player;)Z", at = @At("HEAD"), cancellable = true, remap = false)
     private void beforeIsFood(ItemStack stack, Player owner, CallbackInfoReturnable<Boolean> cir) {
-        // 只处理TFC的食物数据
-        if (!(owner.getFoodData() instanceof TFCFoodData tfcFoodData)) {
-            return;
-        }
+        IPlayerInfo playerInfo = IPlayerInfo.get(owner);
         // 口渴值已满时不需要喝水
-        if (tfcFoodData.getThirst() >= TFCFoodData.MAX_THIRST) {
+        if (playerInfo.getThirst() >= PlayerInfo.MAX_THIRST) {
             return;
         }
         // 如果物品是可饮用的，标记为可以喂食
@@ -48,15 +47,12 @@ public abstract class TaskFeedOwnerMixin {
      */
     @Inject(method = "getPriority(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/player/Player;)Lcom/github/tartaricacid/touhoulittlemaid/api/task/IFeedTask$Priority;", at = @At("HEAD"), cancellable = true, remap = false)
     private void beforeGetPriority(ItemStack stack, Player owner, CallbackInfoReturnable<IFeedTask.Priority> cir) {
-        // 只处理TFC的食物数据
-        if (!(owner.getFoodData() instanceof TFCFoodData tfcFoodData)) {
-            return;
-        }
+        IPlayerInfo playerInfo = IPlayerInfo.get(owner);
         // 不是可饮用物品直接返回
         if (!canDrinkFrom(stack)) {
             return;
         }
-        float thirst = tfcFoodData.getThirst();
+        float thirst = playerInfo.getThirst();
         // 口渴值低于25时设置为高优先级
         if (thirst < 25f) {
             cir.setReturnValue(IFeedTask.Priority.HIGH);
@@ -73,17 +69,18 @@ public abstract class TaskFeedOwnerMixin {
      * @return 是否可以饮用
      */
     private boolean canDrinkFrom(ItemStack stack) {
-        return stack.getCapability(Capabilities.FLUID_ITEM).resolve().map(handler -> {
-            // 遍历物品的所有流体槽
-            for (int i = 0; i < handler.getTanks(); i++) {
-                FluidStack fluidStack = handler.getFluidInTank(i);
-                // 如果流体不为空且是可饮用的，返回true
-                if (!fluidStack.isEmpty() && Drinkable.get(fluidStack.getFluid()) != null) {
-                    return true;
-                }
-            }
+        IFluidHandlerItem handler = stack.getCapability(Capabilities.FluidHandler.ITEM);
+        if (handler == null) {
             return false;
-        }).orElse(false);
+        }
+        // 遍历物品的所有流体槽
+        for (int i = 0; i < handler.getTanks(); i++) {
+            FluidStack fluidStack = handler.getFluidInTank(i);
+            // 如果流体不为空且是可饮用的，返回true
+            if (!fluidStack.isEmpty() && Drinkable.get(fluidStack.getFluid()) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 }
-

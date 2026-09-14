@@ -3,7 +3,8 @@ package net.xdpp.tfcmaid.behavior;
 import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.task.MaidCheckRateTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.google.common.collect.ImmutableMap;
-import net.dries007.tfc.common.capabilities.food.FoodCapability;
+import net.dries007.tfc.common.component.food.FoodCapability;
+import net.dries007.tfc.common.entities.livestock.Age;
 import net.dries007.tfc.common.entities.livestock.TFCAnimalProperties;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -14,8 +15,8 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.xdpp.tfcmaid.config.FeedConfigManager;
 import net.xdpp.tfcmaid.util.MaidEquipmentHelper;
 
@@ -113,19 +114,17 @@ public class MaidFeedTask extends MaidCheckRateTask {
 
         entity.heal(1f);
         if (!level.isClientSide) {
-            final long days = animalProps.getCalendar().getTotalDays();
-            animalProps.setLastFed(days);
-            animalProps.setLastFamiliarityDecay(days);
+            animalProps.setLastFedNow();
             
             if (food.hasCraftingRemainingItem()) {
                 var backpack = maid.getAvailableBackpackInv();
                 ItemHandlerHelper.insertItemStacked(backpack, food.getCraftingRemainingItem().copy(), false);
             }
             
-            if (animalProps.getAgeType() == TFCAnimalProperties.Age.CHILD || 
+            if (animalProps.getAgeType() == Age.CHILD ||
                 animalProps.getFamiliarity() < animalProps.getAdultFamiliarityCap()) {
                 float familiarity = animalProps.getFamiliarity() + 0.06f;
-                if (animalProps.getAgeType() != TFCAnimalProperties.Age.CHILD) {
+                if (animalProps.getAgeType() != Age.CHILD) {
                     familiarity = Math.min(familiarity, animalProps.getAdultFamiliarityCap());
                 }
                 animalProps.setFamiliarity(familiarity);
@@ -165,7 +164,7 @@ public class MaidFeedTask extends MaidCheckRateTask {
     }
 
     private int getAgePriority(TFCAnimalProperties animal) {
-        TFCAnimalProperties.Age age = animal.getAgeType();
+        Age age = animal.getAgeType();
         return switch (age) {
             case CHILD -> 0;
             case ADULT -> 1;

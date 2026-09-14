@@ -7,16 +7,16 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitSounds;
 import com.github.tartaricacid.touhoulittlemaid.util.SoundUtil;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
-import net.dries007.tfc.common.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.dries007.tfc.common.fluids.FluidHelpers;
-import net.dries007.tfc.util.Helpers;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidMilkTask;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +62,7 @@ public class TaskTFCMilk implements IMaidTask {
         
         if (!mainHand.isEmpty()) {
             ItemStack singleStack = mainHand.copyWithCount(1);
-            IFluidHandlerItem handler = Helpers.getCapability(singleStack, Capabilities.FLUID_ITEM);
+            IFluidHandlerItem handler = singleStack.getCapability(Capabilities.FluidHandler.ITEM);
             if (handler != null && canAcceptMoreMilk(handler)) {
                 return true;
             }
@@ -73,7 +73,7 @@ public class TaskTFCMilk implements IMaidTask {
             ItemStack stack = backpack.getStackInSlot(i);
             if (!stack.isEmpty()) {
                 ItemStack singleStack = stack.copyWithCount(1);
-                IFluidHandlerItem handler = Helpers.getCapability(singleStack, Capabilities.FLUID_ITEM);
+                IFluidHandlerItem handler = singleStack.getCapability(Capabilities.FluidHandler.ITEM);
                 if (handler != null && canAcceptMoreMilk(handler)) {
                     return true;
                 }
@@ -83,7 +83,7 @@ public class TaskTFCMilk implements IMaidTask {
     }
 
     private boolean canAcceptMoreMilk(IFluidHandlerItem handler) {
-        int simulatedFill = handler.fill(new FluidStack(net.minecraftforge.common.ForgeMod.MILK.get(), FluidHelpers.BUCKET_VOLUME), IFluidHandlerItem.FluidAction.SIMULATE);
+        int simulatedFill = handler.fill(new FluidStack(NeoForgeMod.MILK.get(), FluidHelpers.BUCKET_VOLUME), IFluidHandlerItem.FluidAction.SIMULATE);
         return simulatedFill > 0;
     }
 
