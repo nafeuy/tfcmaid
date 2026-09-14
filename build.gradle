@@ -124,6 +124,12 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ['-Xlint:deprecation', '-Xlint:removal']
 }
 
+// Forward the terminal to the development server so smoke tests can exercise
+// commands such as `reload` and shut the server down cleanly with `stop`.
+tasks.named('runServer', JavaExec).configure {
+    standardInput = System.in
+}
+
 idea.module {
     downloadSources = true
     downloadJavadoc = true
