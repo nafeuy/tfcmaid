@@ -237,7 +237,7 @@ public class TaskTFCNormalCrop extends TaskTFCFarmBase {
                         cropState = cropState.setValue(ClimbingCropBlock.STICK, true);
                         maid.level().setBlock(cropPos, cropState, 3);
                         maid.level().setBlock(posAbove, cropState.setValue(ClimbingCropBlock.PART, ClimbingCropBlock.Part.TOP), 3);
-                        stack.shrink(1);
+                        inv.extractItem(i, 1, false);
                         maid.swing(InteractionHand.MAIN_HAND);
                     }
                 }

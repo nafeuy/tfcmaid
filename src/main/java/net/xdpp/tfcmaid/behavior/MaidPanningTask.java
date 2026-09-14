@@ -235,7 +235,7 @@ public class MaidPanningTask extends MaidLongRunningTask {
                 BlockState state = blockItem.getBlock().defaultBlockState();
                 ItemStack depositStack = new ItemStack(state.getBlock());
                 if (Deposit.get(depositStack) != null) {
-                    stack.shrink(1);
+                    maid.getMaidInv().extractItem(i, 1, false);
                     ItemStack filledPan = new ItemStack(TFCItems.FILLED_PAN.get());
                     filledPan.set(TFCComponents.DEPOSIT, new ItemComponent(depositStack));
                     maid.setItemInHand(InteractionHand.MAIN_HAND, filledPan);

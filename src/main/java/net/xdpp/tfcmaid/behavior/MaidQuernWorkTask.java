@@ -84,6 +84,13 @@ public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEnt
                 quern.startGrinding();
                 return;
             }
+
+            // Never overwrite a non-recipe stack already present in the input
+            // slot. Return it first, preserving all of its data components.
+            inventory.setStackInSlot(SLOT_INPUT, ItemStack.EMPTY);
+            ItemsUtil.giveItemToMaid(maid, inputStack.copy());
+            quern.markForSync();
+            return;
         }
 
         /**
@@ -118,10 +125,7 @@ public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEnt
         for (int i = 0; i < maid.getMaidInv().getSlots(); i++) {
             ItemStack stack = maid.getMaidInv().getStackInSlot(i);
             if (stack.is(TFCTags.Items.QUERN_HANDSTONES)) {
-                ItemStack result = stack.copy();
-                result.setCount(1);
-                stack.shrink(1);
-                return result;
+                return maid.getMaidInv().extractItem(i, 1, false);
             }
         }
         return ItemStack.EMPTY;
@@ -166,10 +170,7 @@ public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEnt
             if (!stack.isEmpty()) {
                 QuernRecipe recipe = QuernRecipe.getRecipe(stack);
                 if (recipe != null && recipe.matches(stack)) {
-                    ItemStack result = stack.copy();
-                    result.setCount(1);
-                    stack.shrink(1);
-                    return result;
+                    return maid.getMaidInv().extractItem(i, 1, false);
                 }
             }
         }

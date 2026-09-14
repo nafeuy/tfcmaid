@@ -184,7 +184,7 @@ public abstract class TaskTFCFarmBase implements IFarmTask {
                 if (farmlandOpt.isPresent()) {
                     FarmlandBlockEntity farmland = farmlandOpt.get();
                     farmland.addNutrients(fertilizer);
-                    stack.shrink(1);
+                    inv.extractItem(i, 1, false);
                     maid.swing(InteractionHand.MAIN_HAND);
                 }
                 break;

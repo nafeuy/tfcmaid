@@ -164,6 +164,17 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
                  * 检查织机已有原料，计算需要补充的数量
                  */
                 ItemStack slotRecipe = inventory.getStackInSlot(SLOT_RECIPE);
+                if (!slotRecipe.isEmpty()
+                        && !this.currentRecipe.getItemStackIngredient().ingredient().test(slotRecipe)) {
+                    ItemsUtil.giveItemToMaid(maid, slotRecipe.copy());
+                    inventory.setStackInSlot(SLOT_RECIPE, ItemStack.EMPTY);
+                    accessor.tfcmaid$setNeedsRecipeUpdate(true);
+                    accessor.tfcmaid$setProgress(0);
+                    loom.markForSync();
+                    loom.setChanged();
+                    this.currentRecipe = null;
+                    return;
+                }
                 int inLoom = slotRecipe.isEmpty() ? 0 : slotRecipe.getCount();
                 int needed = this.currentRecipe.getInputCount() - inLoom;
 
@@ -172,7 +183,7 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
                  */
                 if (inLoom >= this.currentRecipe.getInputCount()) {
                     this.state = STATE_WORKING;
-                } else if (needed > 0 && !hasEnoughItems(maid, this.currentRecipe, needed)) {
+                } else if (needed > 0 && !hasEnoughItems(maid, this.currentRecipe, needed, slotRecipe)) {
                     this.state = STATE_FIND_RECIPE;
                     this.currentRecipe = null;
                 } else {
@@ -210,7 +221,7 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
                     loom.markForSync();
                 } else if (slotRecipe.getCount() < this.currentRecipe.getInputCount()) {
                     int needed = this.currentRecipe.getInputCount() - slotRecipe.getCount();
-                    ItemStack toAdd = extractItems(maid, this.currentRecipe, needed);
+                    ItemStack toAdd = extractItems(maid, this.currentRecipe, needed, slotRecipe);
                     if (!toAdd.isEmpty()) {
                         slotRecipe.grow(toAdd.getCount());
                         accessor.tfcmaid$setNeedsRecipeUpdate(true);
@@ -361,7 +372,7 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
      * @return true表示有足够的原料
      */
     private boolean hasEnoughItems(EntityMaid maid, LoomRecipe recipe) {
-        return hasEnoughItems(maid, recipe, recipe.getInputCount());
+        return hasEnoughItems(maid, recipe, recipe.getInputCount(), ItemStack.EMPTY);
     }
 
     /**
@@ -370,17 +381,11 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
      * @param maid 女仆实体
      * @param recipe 要检查的配方
      * @param needed 需要的数量
+     * @param requiredStack 织机槽中已有、必须与补充材料组件一致的物品
      * @return true表示有足够的原料
      */
-    private boolean hasEnoughItems(EntityMaid maid, LoomRecipe recipe, int needed) {
-        int count = 0;
-        for (int i = 0; i < maid.getMaidInv().getSlots(); i++) {
-            ItemStack stack = maid.getMaidInv().getStackInSlot(i);
-            if (recipe.getItemStackIngredient().ingredient().test(stack)) {
-                count += stack.getCount();
-            }
-        }
-        return count >= needed;
+    private boolean hasEnoughItems(EntityMaid maid, LoomRecipe recipe, int needed, ItemStack requiredStack) {
+        return !findCompatibleIngredient(maid, recipe, needed, requiredStack).isEmpty();
     }
 
     /**
@@ -391,7 +396,7 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
      * @return 提取的物品
      */
     private ItemStack extractItems(EntityMaid maid, LoomRecipe recipe) {
-        return extractItems(maid, recipe, recipe.getInputCount());
+        return extractItems(maid, recipe, recipe.getInputCount(), ItemStack.EMPTY);
     }
 
     /**
@@ -400,25 +405,65 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
      * @param maid 女仆实体
      * @param recipe 配方
      * @param needed 需要提取的数量
+     * @param requiredStack 织机槽中已有、必须与补充材料组件一致的物品
      * @return 提取的物品
      */
-    private ItemStack extractItems(EntityMaid maid, LoomRecipe recipe, int needed) {
-        ItemStack result = ItemStack.EMPTY;
+    private ItemStack extractItems(EntityMaid maid, LoomRecipe recipe, int needed, ItemStack requiredStack) {
+        ItemStack available = findCompatibleIngredient(maid, recipe, needed, requiredStack);
+        if (available.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        // Keep an immutable comparison value: the matching inventory stack below
+        // may be the same object returned by findCompatibleIngredient and shrunk.
+        ItemStack template = available.copyWithCount(1);
+        ItemStack result = template.copy();
+        result.setCount(0);
         for (int i = 0; i < maid.getMaidInv().getSlots() && needed > 0; i++) {
             ItemStack stack = maid.getMaidInv().getStackInSlot(i);
-            if (recipe.getItemStackIngredient().ingredient().test(stack)) {
+            if (ItemStack.isSameItemSameComponents(template, stack)) {
                 int take = Math.min(stack.getCount(), needed);
-                if (result.isEmpty()) {
-                    result = stack.copy();
-                    result.setCount(take);
-                } else if (ItemStack.isSameItemSameComponents(result, stack)) {
-                    result.grow(take);
+                ItemStack extracted = maid.getMaidInv().extractItem(i, take, false);
+                if (!extracted.isEmpty()) {
+                    result.grow(extracted.getCount());
+                    needed -= extracted.getCount();
                 }
-                stack.shrink(take);
-                needed -= take;
             }
         }
         return result;
+    }
+
+    /**
+     * Finds one component-identical ingredient group that can satisfy the whole
+     * request. Loom input is one stack, so combining merely tag-equivalent items
+     * would discard data components (for example food metadata).
+     */
+    private ItemStack findCompatibleIngredient(EntityMaid maid, LoomRecipe recipe, int needed, ItemStack requiredStack) {
+        if (!requiredStack.isEmpty()) {
+            return countCompatibleItems(maid, recipe, requiredStack) >= needed ? requiredStack : ItemStack.EMPTY;
+        }
+
+        for (int i = 0; i < maid.getMaidInv().getSlots(); i++) {
+            ItemStack candidate = maid.getMaidInv().getStackInSlot(i);
+            if (!candidate.isEmpty()
+                    && recipe.getItemStackIngredient().ingredient().test(candidate)
+                    && countCompatibleItems(maid, recipe, candidate) >= needed) {
+                return candidate;
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private int countCompatibleItems(EntityMaid maid, LoomRecipe recipe, ItemStack template) {
+        int count = 0;
+        for (int i = 0; i < maid.getMaidInv().getSlots(); i++) {
+            ItemStack stack = maid.getMaidInv().getStackInSlot(i);
+            if (recipe.getItemStackIngredient().ingredient().test(stack)
+                    && ItemStack.isSameItemSameComponents(template, stack)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
     }
 
     @Override
