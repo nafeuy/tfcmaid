@@ -121,6 +121,17 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
+tasks.named('jar', Jar).configure {
+    from(rootProject.file('LICENSE-MIT')) {
+        into 'META-INF'
+        rename { 'LICENSE-tfcmaid.txt' }
+    }
+    from(rootProject.file('Third-party-License')) {
+        into 'META-INF'
+        rename { 'THIRD-PARTY-LICENSES.txt' }
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = 21
