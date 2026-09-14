@@ -22,6 +22,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.xdpp.tfcmaid.util.MaidEquipmentHelper;
+import net.xdpp.tfcmaid.util.WirelessIOHelper;
 
 /**
  * 女仆挤奶任务 - 核心是处理容器、堆叠这些细节
@@ -109,14 +110,13 @@ public class MaidMilkTask extends MaidCheckRateTask {
     }
 
     private boolean findAndEquipMilkContainer(EntityMaid maid) {
-        return MaidEquipmentHelper.findAndEquipItemWithValidation(maid, stack -> {
+        java.util.function.Predicate<ItemStack> canHoldMilk = stack -> {
             ItemStack singleStack = stack.copyWithCount(1);
             IFluidHandlerItem handler = singleStack.getCapability(Capabilities.FluidHandler.ITEM);
-            if (handler != null && canAcceptMoreMilk(handler)) {
-                return singleStack;
-            }
-            return null;
-        });
+            return handler != null && canAcceptMoreMilk(handler);
+        };
+        return MaidEquipmentHelper.findAndEquipItem(maid, canHoldMilk)
+                || WirelessIOHelper.findAndEquipItemFromChest(maid, canHoldMilk);
     }
 
     private boolean canAcceptMoreMilk(IFluidHandlerItem handler) {

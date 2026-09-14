@@ -34,11 +34,7 @@ public class TaskTFCPanning implements IMaidTask {
 
     @Override
     public @NotNull ItemStack getIcon() {
-        try {
-            return TFCItems.EMPTY_PAN.get().getDefaultInstance();
-        } catch (Exception e) {
-            return net.minecraft.world.item.Items.IRON_SHOVEL.getDefaultInstance();
-        }
+        return TFCItems.EMPTY_PAN.get().getDefaultInstance();
     }
 
     @Nullable

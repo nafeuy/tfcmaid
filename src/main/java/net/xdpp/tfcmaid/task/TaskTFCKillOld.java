@@ -56,7 +56,7 @@ public class TaskTFCKillOld implements IMaidTask {
 
     private boolean hasWeapon(EntityMaid maid) {
         ItemStack stack = maid.getMainHandItem();
-        return stack.getDamageValue() > 0 || stack.canPerformAction(ItemAbilities.SWORD_DIG);
+        return stack.isDamageableItem() || stack.canPerformAction(ItemAbilities.SWORD_DIG);
     }
 
     @Override

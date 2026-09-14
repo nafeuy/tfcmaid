@@ -19,6 +19,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidMilkTask;
+import net.xdpp.tfcmaid.util.WirelessIOHelper;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -79,7 +80,13 @@ public class TaskTFCMilk implements IMaidTask {
                 }
             }
         }
-        return false;
+        return WirelessIOHelper.hasMatchingItemInChest(maid, this::canAcceptMilk);
+    }
+
+    private boolean canAcceptMilk(ItemStack stack) {
+        ItemStack singleStack = stack.copyWithCount(1);
+        IFluidHandlerItem handler = singleStack.getCapability(Capabilities.FluidHandler.ITEM);
+        return handler != null && canAcceptMoreMilk(handler);
     }
 
     private boolean canAcceptMoreMilk(IFluidHandlerItem handler) {

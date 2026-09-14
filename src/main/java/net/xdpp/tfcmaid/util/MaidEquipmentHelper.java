@@ -1,12 +1,12 @@
 package net.xdpp.tfcmaid.util;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
+import com.github.tartaricacid.touhoulittlemaid.util.ItemsUtil;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -66,43 +66,52 @@ public class MaidEquipmentHelper {
     }
 
     /**
-     * 从女仆背包中查找并装备符合条件的物品，并且对物品进行额外验证
-     * <p>
-     * 这个方法适用于需要对单个物品进行额外处理的场景，比如检查容器是否还能接受更多液体
-     *
-     * @param maid 女仆实体
-     * @param stackTransformer 从原物品栈中提取单个物品并进行验证的函数
-     *                         函数返回 null 表示验证失败，返回 ItemStack 表示验证成功
-     * @return 是否成功装备了物品
+     * Extracts and equips one matching item from an external handler. The maid's
+     * current main-hand stack is moved to her backpack first; if it cannot fit,
+     * the source is left untouched.
      */
-    public static boolean findAndEquipItemWithValidation(EntityMaid maid, Function<ItemStack, ItemStack> stackTransformer) {
-        ItemStack mainHand = maid.getMainHandItem();
-        
-        if (!mainHand.isEmpty()) {
-            ItemStack validatedStack = stackTransformer.apply(mainHand);
-            if (validatedStack != null) {
-                return true;
-            }
-        }
-
+    public static boolean findAndEquipItemFromHandler(EntityMaid maid, IItemHandler source,
+                                                       Predicate<ItemStack> predicate) {
         IItemHandler backpack = maid.getAvailableBackpackInv();
-        for (int i = 0; i < backpack.getSlots(); i++) {
-            ItemStack stack = backpack.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                ItemStack validatedStack = stackTransformer.apply(stack);
-                if (validatedStack != null) {
-                    ItemStack extracted = backpack.extractItem(i, 1, false);
-                    if (!mainHand.isEmpty()) {
-                        if (!ItemHandlerHelper.insertItemStacked(backpack, mainHand.copy(), true).isEmpty()) {
-                            backpack.insertItem(i, extracted, false);
-                            continue;
-                        }
-                        ItemHandlerHelper.insertItemStacked(backpack, mainHand.copy(), false);
+        ItemStack mainHand = maid.getMainHandItem();
+
+        for (int i = 0; i < source.getSlots(); i++) {
+            ItemStack simulated = source.extractItem(i, 1, true);
+            if (simulated.isEmpty() || !predicate.test(simulated)) {
+                continue;
+            }
+            if (!mainHand.isEmpty()
+                    && !ItemHandlerHelper.insertItemStacked(backpack, mainHand.copy(), true).isEmpty()) {
+                continue;
+            }
+
+            ItemStack extracted = source.extractItem(i, 1, false);
+            if (extracted.isEmpty() || !predicate.test(extracted)) {
+                if (!extracted.isEmpty()) {
+                    ItemStack remainder = source.insertItem(i, extracted, false);
+                    if (!remainder.isEmpty()) {
+                        ItemsUtil.giveItemToMaid(maid, remainder);
                     }
-                    maid.setItemInHand(InteractionHand.MAIN_HAND, validatedStack);
-                    return true;
+                }
+                continue;
+            }
+
+            if (!mainHand.isEmpty()) {
+                ItemStack remainingHand = ItemHandlerHelper.insertItemStacked(backpack, mainHand.copy(), false);
+                if (!remainingHand.isEmpty()) {
+                    // A normal item handler is stable between the simulation and
+                    // execution above. Restore both stacks if a custom handler is not.
+                    maid.setItemInHand(InteractionHand.MAIN_HAND, remainingHand);
+                    ItemStack remainder = source.insertItem(i, extracted, false);
+                    if (!remainder.isEmpty()) {
+                        ItemsUtil.giveItemToMaid(maid, remainder);
+                    }
+                    return false;
                 }
             }
+
+            maid.setItemInHand(InteractionHand.MAIN_HAND, extracted);
+            return true;
         }
 
         return false;

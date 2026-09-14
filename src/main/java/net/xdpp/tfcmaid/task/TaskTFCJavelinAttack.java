@@ -41,16 +41,10 @@ public class TaskTFCJavelinAttack implements IRangedAttackTask {
     public @NotNull ResourceLocation getUid() {
         return UID;
     }
-    //小心地雷！！！
-    //获取任务图标
-    //有人反馈说在整合包使用报错，获取不到tfc原版的图标，所以添加catch来处理，出现异常时返回铁剑(因为一个附属mod对tfc的图标机制进行了改动才导致了这个情况)
+
     @Override
     public @NotNull ItemStack getIcon() {
-        try {
-            return TFCItems.ROCK_TOOLS.get(RockCategory.IGNEOUS_EXTRUSIVE).get(RockCategory.ItemType.JAVELIN).get().getDefaultInstance();
-        } catch (Exception e) {
-            return net.minecraft.world.item.Items.IRON_SWORD.getDefaultInstance();
-        }
+        return TFCItems.ROCK_TOOLS.get(RockCategory.IGNEOUS_EXTRUSIVE).get(RockCategory.ItemType.JAVELIN).get().getDefaultInstance();
     }
 
     @Nullable

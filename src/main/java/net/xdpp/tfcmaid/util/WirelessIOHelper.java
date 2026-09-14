@@ -4,13 +4,14 @@ import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.init.InitItems;
 import com.github.tartaricacid.touhoulittlemaid.inventory.chest.ChestManager;
 import com.github.tartaricacid.touhoulittlemaid.item.ItemWirelessIO;
-import com.github.tartaricacid.touhoulittlemaid.item.bauble.WirelessIOBauble;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 // 隙间工具类，把几个Behavior里重复的隙间操作都抽到这里来了
 // 省得每个文件都要写一遍获取饰品、检查绑定、过滤物品这些破事
@@ -60,6 +61,9 @@ public class WirelessIOHelper {
         // 遍历所有支持的箱子类型，找到能用的就行
         for (var type : ChestManager.getAllChestTypes()) {
             if (type.isChest(te)) {
+                if (type.getOpenCount(maid.level(), bindingPos, te) > 0) {
+                    return stack;
+                }
                 IItemHandler chestInv = maid.level().getCapability(Capabilities.ItemHandler.BLOCK, te.getBlockPos(), null);
                 return tryInsertToChestWithFilter(maid, wirelessIO, chestInv, stack);
             }
@@ -75,7 +79,6 @@ public class WirelessIOHelper {
         }
         boolean isBlacklist = ItemWirelessIO.isBlacklist(wirelessIO);
         IItemHandler filterList = ItemWirelessIO.getFilterList(maid.registryAccess(), wirelessIO);
-        List<Boolean> slotConfigData = ItemWirelessIO.getSlotConfig(wirelessIO);
 
         // 先检查物品能不能移动，根据黑白名单判断
         boolean allowMove = isBlacklist;
@@ -89,7 +92,9 @@ public class WirelessIOHelper {
         }
 
         if (allowMove) {
-            return WirelessIOBauble.insertItemStacked(chestInv, stack, false, slotConfigData);
+            // Wireless slot configuration protects maid inventory slots. TLM's
+            // maid-to-chest path does not apply that list to chest slot indices.
+            return ItemHandlerHelper.insertItemStacked(chestInv, stack, false);
         }
         return stack;
     }
@@ -131,9 +136,63 @@ public class WirelessIOHelper {
 
         for (var type : ChestManager.getAllChestTypes()) {
             if (type.isChest(te)) {
+                if (type.getOpenCount(maid.level(), bindingPos, te) > 0) {
+                    return null;
+                }
                 return maid.level().getCapability(Capabilities.ItemHandler.BLOCK, te.getBlockPos(), null);
             }
         }
         return null;
+    }
+
+    /**
+     * Finds one matching item in a bound chest and equips it. This mirrors TLM's
+     * chest-to-maid direction, filter, distance, open-chest, and protected-main-hand
+     * rules while allowing a work task to request its required item immediately.
+     */
+    public static boolean findAndEquipItemFromChest(EntityMaid maid, Predicate<ItemStack> predicate) {
+        ItemStack wirelessIO = getWirelessIOBauble(maid);
+        if (wirelessIO.isEmpty() || ItemWirelessIO.isMaidToChest(wirelessIO)) {
+            return false;
+        }
+
+        List<Boolean> slotConfig = ItemWirelessIO.getSlotConfig(wirelessIO);
+        if (slotConfig != null && slotConfig.size() >= 2 && slotConfig.get(slotConfig.size() - 2)) {
+            return false;
+        }
+
+        IItemHandler chest = getChestHandler(maid);
+        if (chest == null) {
+            return false;
+        }
+        return MaidEquipmentHelper.findAndEquipItemFromHandler(maid, chest,
+                stack -> isItemAllowed(maid, wirelessIO, stack) && predicate.test(stack));
+    }
+
+    /**
+     * Read-only counterpart used by task-switch conditions.
+     */
+    public static boolean hasMatchingItemInChest(EntityMaid maid, Predicate<ItemStack> predicate) {
+        ItemStack wirelessIO = getWirelessIOBauble(maid);
+        if (wirelessIO.isEmpty() || ItemWirelessIO.isMaidToChest(wirelessIO)) {
+            return false;
+        }
+
+        List<Boolean> slotConfig = ItemWirelessIO.getSlotConfig(wirelessIO);
+        if (slotConfig != null && slotConfig.size() >= 2 && slotConfig.get(slotConfig.size() - 2)) {
+            return false;
+        }
+
+        IItemHandler chest = getChestHandler(maid);
+        if (chest == null) {
+            return false;
+        }
+        for (int i = 0; i < chest.getSlots(); i++) {
+            ItemStack stack = chest.getStackInSlot(i);
+            if (!stack.isEmpty() && isItemAllowed(maid, wirelessIO, stack) && predicate.test(stack)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

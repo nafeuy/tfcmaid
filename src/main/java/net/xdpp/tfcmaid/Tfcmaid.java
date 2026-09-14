@@ -19,7 +19,7 @@ import net.xdpp.tfcmaid.config.WeedConfigManager;
 import net.xdpp.tfcmaid.item.FarmDebugWand;
 import org.slf4j.Logger;
 
-// The value here should match an entry in the META-INF/mods.toml file
+// The value here should match an entry in META-INF/neoforge.mods.toml.
 @Mod(Tfcmaid.MODID)
 public class Tfcmaid {
 

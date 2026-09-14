@@ -20,6 +20,7 @@ import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.item.ItemStack;
 import net.xdpp.tfcmaid.config.FeedConfigManager;
 import net.xdpp.tfcmaid.util.MaidEquipmentHelper;
+import net.xdpp.tfcmaid.util.WirelessIOHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -178,7 +179,9 @@ public class MaidFeedTask extends MaidCheckRateTask {
     }
 
     private ItemStack findAndEquipFood(EntityMaid maid, List<LivingEntity> animals) {
-        if (MaidEquipmentHelper.findAndEquipItem(maid, stack -> isValidFoodForAnyAnimal(stack, animals))) {
+        java.util.function.Predicate<ItemStack> validFood = stack -> isValidFoodForAnyAnimal(stack, animals);
+        if (MaidEquipmentHelper.findAndEquipItem(maid, validFood)
+                || WirelessIOHelper.findAndEquipItemFromChest(maid, validFood)) {
             return maid.getMainHandItem();
         }
         return ItemStack.EMPTY;

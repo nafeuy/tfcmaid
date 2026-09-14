@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidFeedTask;
+import net.xdpp.tfcmaid.util.WirelessIOHelper;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -67,7 +68,7 @@ public class TaskTFCFeed implements IMaidTask {
                 return true;
             }
         }
-        return false;
+        return WirelessIOHelper.hasMatchingItemInChest(maid, this::isValidFood);
     }
 
     private boolean isValidFood(ItemStack stack) {

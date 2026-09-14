@@ -7,7 +7,6 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -30,9 +29,6 @@ import java.util.function.Predicate;
 public class TaskTFCHay implements IFarmTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_hay");
 
-    public static final TagKey<Block> TFC_PLANTS = TagKey.create(net.minecraft.core.registries.Registries.BLOCK, ResourceLocation.parse("tfc:plants"));
-    public static final TagKey<net.minecraft.world.item.Item> TFC_SCYTHES = TagKey.create(net.minecraft.core.registries.Registries.ITEM, ResourceLocation.parse("tfc:scythes"));
-
     @Override
     public @NotNull ResourceLocation getUid() {
         return UID;
@@ -54,7 +50,7 @@ public class TaskTFCHay implements IFarmTask {
         ItemStack mainHand = maid.getMainHandItem();
         return mainHand.getItem() instanceof HoeItem 
                 || mainHand.is(TFCTags.Items.TOOLS_KNIFE)
-                || mainHand.is(TFC_SCYTHES);
+                || mainHand.is(TFCTags.Items.TOOLS_SCYTHE);
     }
 
     private boolean hasInventorySpace(EntityMaid maid) {
@@ -81,10 +77,6 @@ public class TaskTFCHay implements IFarmTask {
         ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(cropState.getBlock());
 
         if (WeedConfigManager.isBlockBlacklisted(blockId.toString())) {
-            return false;
-        }
-
-        if (!cropState.is(TFC_PLANTS)) {
             return false;
         }
 

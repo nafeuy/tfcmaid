@@ -2,13 +2,12 @@ package net.xdpp.tfcmaid.task;
 
 import com.github.tartaricacid.touhoulittlemaid.api.task.IFarmTask;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
+import net.dries007.tfc.common.TFCTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.config.WeedConfigManager;
@@ -16,9 +15,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class TaskTFCWeed implements IFarmTask {
     public static final ResourceLocation UID = ResourceLocation.parse(Tfcmaid.MODID + ":tfc_weed");
-
-    public static final TagKey<Block> TFC_PLANTS = TagKey.create(net.minecraft.core.registries.Registries.BLOCK, ResourceLocation.parse("tfc:plants"));
-    public static final TagKey<Block> TFC_WILD_CROPS = TagKey.create(net.minecraft.core.registries.Registries.BLOCK, ResourceLocation.parse("tfc:wild_crops"));
 
     @Override
     public @NotNull ResourceLocation getUid() {
@@ -43,15 +39,8 @@ public class TaskTFCWeed implements IFarmTask {
             return false;
         }
 
-        if (cropState.is(TFC_PLANTS)) {
-            return true;
-        }
-
-        if (cropState.is(TFC_WILD_CROPS)) {
-            return true;
-        }
-
-        return false;
+        ItemStack blockItem = cropState.getBlock().asItem().getDefaultInstance();
+        return blockItem.is(TFCTags.Items.PLANTS) || blockItem.is(TFCTags.Items.WILD_CROPS);
     }
 
     @Override

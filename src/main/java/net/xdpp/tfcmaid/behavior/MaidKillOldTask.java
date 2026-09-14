@@ -4,7 +4,6 @@ import com.github.tartaricacid.touhoulittlemaid.entity.ai.brain.task.MaidCheckRa
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.inventory.chest.ChestManager;
 import com.github.tartaricacid.touhoulittlemaid.item.ItemWirelessIO;
-import com.github.tartaricacid.touhoulittlemaid.item.bauble.WirelessIOBauble;
 import com.google.common.collect.ImmutableMap;
 import net.dries007.tfc.common.entities.livestock.TFCAnimalProperties;
 import net.dries007.tfc.common.entities.livestock.Age;
@@ -21,6 +20,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.xdpp.tfcmaid.util.WirelessIOHelper;
 
 import java.util.List;
@@ -72,7 +72,7 @@ public class MaidKillOldTask extends MaidCheckRateTask {
 
     // 判断是不是武器：有耐久值或者能挥剑就行
     private boolean isWeapon(ItemStack stack) {
-        return stack.getDamageValue() > 0 || stack.canPerformAction(ItemAbilities.SWORD_DIG);
+        return stack.isDamageableItem() || stack.canPerformAction(ItemAbilities.SWORD_DIG);
     }
 
     // 击杀逻辑：先清空背包，再挥一刀
@@ -107,6 +107,9 @@ public class MaidKillOldTask extends MaidCheckRateTask {
 
         for (var type : ChestManager.getAllChestTypes()) {
             if (type.isChest(te)) {
+                if (type.getOpenCount(maid.level(), bindingPos, te) > 0) {
+                    return;
+                }
                 IItemHandler chestInv = maid.level().getCapability(Capabilities.ItemHandler.BLOCK, te.getBlockPos(), null);
                 if (chestInv != null) {
                     List<Boolean> slotConfigData = ItemWirelessIO.getSlotConfig(wirelessIO);
@@ -114,6 +117,9 @@ public class MaidKillOldTask extends MaidCheckRateTask {
                     // 遍历背包，一个一个挪
                     var backpack = maid.getAvailableBackpackInv();
                     for (int i = 0; i < backpack.getSlots(); i++) {
+                        if (slotConfigData != null && i < slotConfigData.size() && slotConfigData.get(i)) {
+                            continue;
+                        }
                         ItemStack stack = backpack.getStackInSlot(i);
                         if (stack.isEmpty()) {
                             continue;
@@ -121,7 +127,7 @@ public class MaidKillOldTask extends MaidCheckRateTask {
 
                         boolean allowMove = WirelessIOHelper.isItemAllowed(maid, wirelessIO, stack);
                         if (allowMove) {
-                            ItemStack remaining = WirelessIOBauble.insertItemStacked(chestInv, stack.copy(), false, slotConfigData);
+                            ItemStack remaining = ItemHandlerHelper.insertItemStacked(chestInv, stack.copy(), false);
                             int movedCount = stack.getCount() - remaining.getCount();
                             if (movedCount > 0) {
                                 backpack.extractItem(i, movedCount, false);
