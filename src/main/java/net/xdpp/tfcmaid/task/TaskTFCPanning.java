@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.dries007.tfc.common.items.EmptyPanItem;
 import net.dries007.tfc.common.items.PanItem;
 import net.dries007.tfc.common.items.TFCItems;
-import net.dries007.tfc.util.Pannable;
+import net.dries007.tfc.util.data.Deposit;
 import net.xdpp.tfcmaid.Tfcmaid;
 import net.xdpp.tfcmaid.behavior.MaidPanningTask;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +80,7 @@ public class TaskTFCPanning implements IMaidTask {
             }
             if (stack.getItem() instanceof BlockItem blockItem) {
                 BlockState state = blockItem.getBlock().defaultBlockState();
-                if (Pannable.get(state) != null) {
+                if (Deposit.get(new ItemStack(state.getBlock())) != null) {
                     return true;
                 }
             }

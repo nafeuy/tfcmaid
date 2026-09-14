@@ -5,8 +5,6 @@ import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.github.tartaricacid.touhoulittlemaid.util.ItemsUtil;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -24,7 +22,9 @@ import net.dries007.tfc.common.TFCTags;
 import net.dries007.tfc.common.items.EmptyPanItem;
 import net.dries007.tfc.common.items.PanItem;
 import net.dries007.tfc.common.items.TFCItems;
-import net.dries007.tfc.util.Pannable;
+import net.dries007.tfc.common.component.TFCComponents;
+import net.dries007.tfc.common.component.item.ItemComponent;
+import net.dries007.tfc.util.data.Deposit;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -192,9 +192,10 @@ public class MaidPanningTask extends MaidLongRunningTask {
             return;
         }
 
-        final Pannable pannable = PanItem.readPannable(world.holderLookup(Registries.BLOCK), stack);
-        if (pannable != null) {
-            final var table = world.getServer().getLootData().getLootTable(pannable.getLootTable());
+        final ItemStack depositStack = stack.getOrDefault(TFCComponents.DEPOSIT, ItemComponent.EMPTY).stack();
+        final Deposit deposit = Deposit.get(depositStack);
+        if (deposit != null) {
+            final var table = world.getServer().reloadableRegistries().getLootTable(deposit.lootTable());
             final var builder = new LootParams.Builder(world)
                     .withParameter(LootContextParams.THIS_ENTITY, maid)
                     .withParameter(LootContextParams.ORIGIN, maid.position())
@@ -232,11 +233,11 @@ public class MaidPanningTask extends MaidLongRunningTask {
             ItemStack stack = maid.getMaidInv().getStackInSlot(i);
             if (stack.getItem() instanceof BlockItem blockItem) {
                 BlockState state = blockItem.getBlock().defaultBlockState();
-                Pannable pannable = Pannable.get(state);
-                if (pannable != null) {
+                ItemStack depositStack = new ItemStack(state.getBlock());
+                if (Deposit.get(depositStack) != null) {
                     stack.shrink(1);
                     ItemStack filledPan = new ItemStack(TFCItems.FILLED_PAN.get());
-                    filledPan.addTagElement("state", NbtUtils.writeBlockState(state));
+                    filledPan.set(TFCComponents.DEPOSIT, new ItemComponent(depositStack));
                     maid.setItemInHand(InteractionHand.MAIN_HAND, filledPan);
                     return;
                 }

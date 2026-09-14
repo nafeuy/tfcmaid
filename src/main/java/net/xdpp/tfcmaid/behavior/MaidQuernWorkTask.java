@@ -5,14 +5,9 @@ import com.github.tartaricacid.touhoulittlemaid.util.ItemsUtil;
 import net.dries007.tfc.common.TFCTags;
 import net.dries007.tfc.common.blockentities.QuernBlockEntity;
 import net.dries007.tfc.common.recipes.QuernRecipe;
-import net.dries007.tfc.common.recipes.inventory.ItemStackInventory;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Field;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
 /**
  * 推磨工作任务类
@@ -29,29 +24,12 @@ import java.lang.reflect.Field;
  * - 距离检查：只有在推磨4格范围内才能工作
  */
 public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEntity> {
-    private static final Logger LOGGER = LoggerFactory.getLogger("MaidQuernWorkTask");
-
     /**
      * 推磨槽位定义
      */
     private static final int SLOT_HANDSTONE = 0;
     private static final int SLOT_INPUT = 1;
     private static final int SLOT_OUTPUT = 2;
-
-    /**
-     * 通过反射获取推磨的 inventory 字段
-     */
-    private static Field inventoryField = null;
-
-    static {
-        try {
-            Class<?> clazz = Class.forName("net.dries007.tfc.common.blockentities.InventoryBlockEntity");
-            inventoryField = clazz.getDeclaredField("inventory");
-            inventoryField.setAccessible(true);
-        } catch (Exception e) {
-            LOGGER.error("Failed to get inventory field", e);
-        }
-    }
 
     public MaidQuernWorkTask(double closeEnoughDist) {
         super();
@@ -65,10 +43,6 @@ public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEnt
     @Override
     protected void tickWork(ServerLevel world, EntityMaid maid, long gameTime, QuernBlockEntity quern) {
         var inventory = getQuernInventory(quern);
-        if (inventory == null) {
-            LOGGER.error("MaidQuernWorkTask tick: failed to get quern inventory");
-            return;
-        }
 
         /**
          * 1. 先检查输出槽，如果有东西就取出来给女仆
@@ -105,9 +79,8 @@ public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEnt
          */
         ItemStack inputStack = inventory.getStackInSlot(SLOT_INPUT);
         if (!inputStack.isEmpty()) {
-            ItemStackInventory wrapper = new ItemStackInventory(inputStack);
-            QuernRecipe recipe = QuernRecipe.getRecipe(world, wrapper);
-            if (recipe != null && recipe.matches(wrapper, world)) {
+            QuernRecipe recipe = QuernRecipe.getRecipe(inputStack);
+            if (recipe != null && recipe.matches(inputStack)) {
                 quern.startGrinding();
                 return;
             }
@@ -126,22 +99,13 @@ public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEnt
     }
 
     /**
-     * 通过反射获取推磨的 inventory
+     * 获取推磨公开的内部物品栏视图。
      *
      * @param quern 推磨方块实体
      * @return 推磨的物品处理器
      */
     private IItemHandlerModifiable getQuernInventory(QuernBlockEntity quern) {
-        if (inventoryField == null) {
-            LOGGER.error("MaidQuernWorkTask: inventoryField is null");
-            return null;
-        }
-        try {
-            return (IItemHandlerModifiable) inventoryField.get(quern);
-        } catch (Exception e) {
-            LOGGER.error("MaidQuernWorkTask: Failed to get quern inventory", e);
-            return null;
-        }
+        return quern.getInventory();
     }
 
     /**
@@ -153,7 +117,7 @@ public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEnt
     private ItemStack findHandstoneInInventory(EntityMaid maid) {
         for (int i = 0; i < maid.getMaidInv().getSlots(); i++) {
             ItemStack stack = maid.getMaidInv().getStackInSlot(i);
-            if (stack.is(TFCTags.Items.HANDSTONE)) {
+            if (stack.is(TFCTags.Items.QUERN_HANDSTONES)) {
                 ItemStack result = stack.copy();
                 result.setCount(1);
                 stack.shrink(1);
@@ -175,9 +139,8 @@ public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEnt
         // 先检查主手
         ItemStack mainHand = maid.getMainHandItem();
         if (!mainHand.isEmpty()) {
-            ItemStackInventory wrapper = new ItemStackInventory(mainHand);
-            QuernRecipe recipe = QuernRecipe.getRecipe(world, wrapper);
-            if (recipe != null && recipe.matches(wrapper, world)) {
+            QuernRecipe recipe = QuernRecipe.getRecipe(mainHand);
+            if (recipe != null && recipe.matches(mainHand)) {
                 ItemStack result = mainHand.copy();
                 result.setCount(1);
                 mainHand.shrink(1);
@@ -188,9 +151,8 @@ public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEnt
         // 再检查副手
         ItemStack offHand = maid.getOffhandItem();
         if (!offHand.isEmpty()) {
-            ItemStackInventory wrapper = new ItemStackInventory(offHand);
-            QuernRecipe recipe = QuernRecipe.getRecipe(world, wrapper);
-            if (recipe != null && recipe.matches(wrapper, world)) {
+            QuernRecipe recipe = QuernRecipe.getRecipe(offHand);
+            if (recipe != null && recipe.matches(offHand)) {
                 ItemStack result = offHand.copy();
                 result.setCount(1);
                 offHand.shrink(1);
@@ -202,9 +164,8 @@ public class MaidQuernWorkTask extends AbstractBlockEntityWorkTask<QuernBlockEnt
         for (int i = 0; i < maid.getMaidInv().getSlots(); i++) {
             ItemStack stack = maid.getMaidInv().getStackInSlot(i);
             if (!stack.isEmpty()) {
-                ItemStackInventory wrapper = new ItemStackInventory(stack);
-                QuernRecipe recipe = QuernRecipe.getRecipe(world, wrapper);
-                if (recipe != null && recipe.matches(wrapper, world)) {
+                QuernRecipe recipe = QuernRecipe.getRecipe(stack);
+                if (recipe != null && recipe.matches(stack)) {
                     ItemStack result = stack.copy();
                     result.setCount(1);
                     stack.shrink(1);

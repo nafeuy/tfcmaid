@@ -13,6 +13,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.behavior.StopAttackingIfTargetInvalid;
@@ -128,7 +129,7 @@ public class TaskTFCJavelinAttack implements IRangedAttackTask {
         thrownJavelin.shoot(x, y, z, velocity, inaccuracy);
         thrownJavelin.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
 
-        shooter.getMainHandItem().hurtAndBreak(1, shooter, maid -> maid.broadcastBreakEvent(InteractionHand.MAIN_HAND));
+        shooter.getMainHandItem().hurtAndBreak(1, shooter, EquipmentSlot.MAINHAND);
         shooter.level().addFreshEntity(thrownJavelin);
         shooter.playSound(TFCSounds.JAVELIN_THROWN.get(), 1.0f, 1.0f);
     }

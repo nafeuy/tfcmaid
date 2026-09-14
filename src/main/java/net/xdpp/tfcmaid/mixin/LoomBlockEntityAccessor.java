@@ -35,14 +35,6 @@ public interface LoomBlockEntityAccessor {
     void tfcmaid$setLastPushed(long lastPushed);
 
     /**
-     * 获取是否需要更新进度标志
-     *
-     * @return true表示需要更新进度
-     */
-    @Accessor("needsProgressUpdate")
-    boolean tfcmaid$getNeedsProgressUpdate();
-
-    /**
      * 设置是否需要更新进度标志
      *
      * @param needsProgressUpdate 要设置的标志值
@@ -51,36 +43,12 @@ public interface LoomBlockEntityAccessor {
     void tfcmaid$setNeedsProgressUpdate(boolean needsProgressUpdate);
 
     /**
-     * 获取是否需要更新配方标志
-     *
-     * @return true表示需要更新配方
-     */
-    @Accessor("needsRecipeUpdate")
-    boolean tfcmaid$getNeedsRecipeUpdate();
-
-    /**
      * 设置是否需要更新配方标志
      *
      * @param needsRecipeUpdate 要设置的标志值
      */
     @Accessor("needsRecipeUpdate")
     void tfcmaid$setNeedsRecipeUpdate(boolean needsRecipeUpdate);
-
-    /**
-     * 获取当前织机使用的配方
-     *
-     * @return 当前配方对象
-     */
-    @Accessor("recipe")
-    LoomRecipe tfcmaid$getRecipe();
-
-    /**
-     * 获取当前织机进度
-     *
-     * @return 当前进度值（0到配方步数之间）
-     */
-    @Accessor("progress")
-    int tfcmaid$getProgress();
 
     /**
      * 设置当前织机进度

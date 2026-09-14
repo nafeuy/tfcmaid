@@ -15,12 +15,9 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.xdpp.tfcmaid.mixin.LoomBlockEntityAccessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,8 +35,6 @@ import java.util.List;
  * - 距离检查：只有在织机4格范围内才能工作
  */
 public class MaidLoomWorkTask extends MaidLongRunningTask {
-    private static final Logger LOGGER = LoggerFactory.getLogger("MaidLoomWorkTask");
-    
     /**
      * 状态定义
      */
@@ -55,23 +50,6 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
      */
     private static final int SLOT_RECIPE = 0;
     private static final int SLOT_OUTPUT = 1;
-
-    /**
-     * 通过反射获取织机的 inventory 字段
-     * TFC的织机继承自 InventoryBlockEntity，其 inventory 字段是受保护的
-     * 使用反射绕过访问限制
-     */
-    private static Field inventoryField = null;
-
-    static {
-        try {
-            Class<?> clazz = Class.forName("net.dries007.tfc.common.blockentities.InventoryBlockEntity");
-            inventoryField = clazz.getDeclaredField("inventory");
-            inventoryField.setAccessible(true);
-        } catch (Exception e) {
-            LOGGER.error("Failed to get inventory field", e);
-        }
-    }
 
     /**
      * 当前状态
@@ -134,10 +112,6 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
         }
         LoomBlockEntityAccessor accessor = (LoomBlockEntityAccessor) loom;
         var inventory = getLoomInventory(loom);
-        if (inventory == null) {
-            LOGGER.error("MaidLoomWorkTask tick: failed to get loom inventory");
-            return;
-        }
 
         switch (this.state) {
             case STATE_FIND_RECIPE: {
@@ -168,7 +142,10 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
                 /**
                  * 查询所有织机配方，找到与主手物品匹配的配方
                  */
-                List<LoomRecipe> recipes = new ArrayList<>(Helpers.getRecipes(world.getRecipeManager(), TFCRecipeTypes.LOOM).values());
+                List<LoomRecipe> recipes = world.getRecipeManager().getAllRecipesFor(TFCRecipeTypes.LOOM.get())
+                        .stream()
+                        .map(holder -> holder.value())
+                        .toList();
                 List<LoomRecipe> matchingRecipes = new ArrayList<>();
                 for (LoomRecipe recipe : recipes) {
                     ItemStack resultStack = recipe.getResultItem(world.registryAccess());
@@ -273,7 +250,7 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
                 /**
                  * 检查配方是否已加载
                  */
-                LoomRecipe recipe = accessor.tfcmaid$getRecipe();
+                LoomRecipe recipe = loom.getRecipe();
                 if (recipe == null) {
                     ItemStack slotRecipe = inventory.getStackInSlot(SLOT_RECIPE);
                     if (slotRecipe.getCount() < this.currentRecipe.getInputCount()) {
@@ -287,7 +264,7 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
                     break;
                 }
 
-                int progress = accessor.tfcmaid$getProgress();
+                int progress = loom.getProgress();
                 int stepCount = recipe.getStepCount();
                 
                 /**
@@ -351,22 +328,13 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
     }
 
     /**
-     * 通过反射获取织机的 inventory
+     * 获取 TFC 公开的织机内部物品栏视图。
      *
      * @param loom 织机方块实体
      * @return 织机的物品处理器
      */
     private IItemHandlerModifiable getLoomInventory(LoomBlockEntity loom) {
-        if (inventoryField == null) {
-            LOGGER.error("MaidLoomWorkTask: inventoryField is null");
-            return null;
-        }
-        try {
-            return (IItemHandlerModifiable) inventoryField.get(loom);
-        } catch (Exception e) {
-            LOGGER.error("MaidLoomWorkTask: Failed to get loom inventory", e);
-            return null;
-        }
+        return loom.getInventory();
     }
 
     /**
@@ -443,7 +411,7 @@ public class MaidLoomWorkTask extends MaidLongRunningTask {
                 if (result.isEmpty()) {
                     result = stack.copy();
                     result.setCount(take);
-                } else if (ItemStack.isSameItemSameTags(result, stack)) {
+                } else if (ItemStack.isSameItemSameComponents(result, stack)) {
                     result.grow(take);
                 }
                 stack.shrink(take);

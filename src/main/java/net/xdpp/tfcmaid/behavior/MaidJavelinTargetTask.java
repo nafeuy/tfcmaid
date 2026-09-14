@@ -70,7 +70,7 @@ public class MaidJavelinTargetTask extends Behavior<EntityMaid> {
                     if (ticksUsingItem >= 30 && inSafeArea) {
                         owner.stopUsingItem();
                         owner.performRangedAttack(target, 0);
-                        AttributeInstance attributeInstance = owner.getAttribute(InitAttribute.MAID_TRIDENT_COOLDOWN.get());
+                        AttributeInstance attributeInstance = owner.getAttribute(InitAttribute.MAID_TRIDENT_COOLDOWN);
                         if (attributeInstance != null) {
                             this.attackTime = (int) attributeInstance.getValue();
                         } else {

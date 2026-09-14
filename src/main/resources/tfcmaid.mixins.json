@@ -9,7 +9,6 @@
     "MaidHealSelfTaskMixin",
     "MaidHomeMealTaskMixin",
     "MaidWorkMealTaskMixin",
-    "QuernBlockEntityAccessor",
     "TaskFeedOwnerMixin",
     "TaskManagerMixin"
   ],
