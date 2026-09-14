@@ -53,7 +53,7 @@ public class Tfcmaid {
     }
 
     // 使用 EventBusSubscriber 自动注册类中所有使用 @SubscribeEvent 注解的静态方法
-    @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
     public static class ClientModEvents {
 
         @SubscribeEvent

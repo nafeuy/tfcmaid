@@ -1,7 +1,6 @@
 package net.xdpp.tfcmaid.mixin;
 
 import net.dries007.tfc.common.blockentities.LoomBlockEntity;
-import net.dries007.tfc.common.recipes.LoomRecipe;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 

@@ -3,7 +3,6 @@
   "minVersion" : "0.8.7",
   "package" : "net.xdpp.tfcmaid.mixin",
   "compatibilityLevel" : "JAVA_21",
-  "refmap" : "tfcmaid.refmap.json",
   "mixins" : [
     "LoomBlockEntityAccessor",
     "MaidHealSelfTaskMixin",

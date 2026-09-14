@@ -17,7 +17,7 @@ import java.util.List;
  * 1. 当隙间从箱子往女仆背包传输物品时，跳过腐烂的食物
  * 2. 当隙间从女仆往箱子传输物品时，强制把腐烂的食物移动到箱子
  */
-@EventBusSubscriber(modid = Tfcmaid.MODID, bus = EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(modid = Tfcmaid.MODID)
 public class TfcmaidEvents {
 
     /**
