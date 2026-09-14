@@ -138,11 +138,11 @@ Critical mixins remain `required`; they will not be converted to `require = 0` a
 
 | Old API/behavior | Verified 1.21.1 direction | Affected modules | Status |
 |---|---|---|---|
-| ForgeGradle + Mixingradle | NeoForge ModDevGradle 2.0.107, built-in Mixin compilation | build | VERIFIED, NOT APPLIED |
-| Java 17 | Java 21 toolchain/release | build | VERIFIED, NOT APPLIED |
-| Forge 47.x | NeoForge 21.1.234 | build/runtime | VERIFIED, NOT APPLIED |
-| Parchment `2023.06.26-1.20.1` | Parchment `2024.11.17` for 1.21.1 | build/mappings | VERIFIED, NOT APPLIED |
-| `mods.toml` Forge dependency keys | `neoforge.mods.toml`, `type = "required"`, NeoForge dependency | metadata | VERIFIED, NOT APPLIED |
+| ForgeGradle + Mixingradle | NeoForge ModDevGradle 2.0.107, built-in Mixin compilation | build | APPLIED; dependency resolution PASS |
+| Java 17 | Java 21 toolchain/release | build | APPLIED; JVM/toolchain PASS |
+| Forge 47.x | NeoForge 21.1.234 | build/runtime | APPLIED; artifact generation PASS |
+| Parchment `2023.06.26-1.20.1` | Parchment `2024.11.17` for 1.21.1 | build/mappings | APPLIED; artifact generation PASS |
+| `mods.toml` Forge dependency keys | `neoforge.mods.toml`, `type = "required"`, NeoForge dependency | metadata | APPLIED; runtime validation pending |
 | `RegistryObject` | NeoForge `DeferredItem`/`DeferredHolder` as appropriate | bootstrap | PENDING |
 | Forge item/fluid capability queries | NeoForge capability API and TFC 4.2.10 public component/helper APIs | inventory, milk, thirst, wireless I/O | PENDING |
 | NBT-based stack equivalence | `ItemStack.isSameItemSameComponents` or handler insertion semantics | events/utilities | PENDING |
@@ -200,9 +200,9 @@ None at the end of Phase 0. Dependency artifacts and matching upstream source re
 |---|---|---|
 | Baseline `git status --short --branch` | PASS | Clean `master` at `67feeec`; migration branch created |
 | Source/API inventory | PASS | 55 Java and 59 resource files scanned; counts recorded above |
-| `clean build` | NOT RUN | Scheduled after Phase 1/2 skeleton migration |
+| `clean compileJava` (first migration compile) | EXPECTED FAIL | ModDevGradle created the 1.21.1/NeoForge artifacts and resolved exact TFC/TLM/Patchouli releases; javac reported 231 source-port errors (first 100 shown) |
+| `clean build` | NOT RUN | Scheduled after compile migration |
 | `runClient` | NOT RUN | Requires compiled port |
 | `runServer` | NOT RUN | Requires compiled port |
 | datagen | NOT RUN | Requires compiled port |
 | `/reload` | NOT RUN | Requires running world/server |
-
