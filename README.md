@@ -1,8 +1,12 @@
 # TFCMaid / 群峦女仆
 
+> **这个项目由 AI 完成**
+>
+> 本仓库的代码、资源适配和文档均为 100% AI 生成，人工编写占比为 0%。维护者负责提出需求和决定项目方向，具体实现全部交给 AI。
+
 TFCMaid 是 TerraFirmaCraft 与 Touhou Little Maid 的兼容附属模组。它为女仆提供 TFC 作物、牲畜、工具、机器与物品数据语义，并让 TLM 隙间在传输 TFC 食物、液体、温度和耐久物品时保持数据完整。
 
-本分支已经正式迁移到 Minecraft 1.21.1 + NeoForge。详细的 API 决策、Mixin 审计、功能矩阵和实测证据见 [MIGRATION_NOTES.md](MIGRATION_NOTES.md)。
+本项目已经正式迁移到 Minecraft 1.21.1 + NeoForge。详细的 API 决策、Mixin 审计、功能矩阵和实测证据见 [MIGRATION_NOTES.md](MIGRATION_NOTES.md)。
 
 ## 支持环境
 
